@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        build_type: [Debug, Release]
+    steps:
+      - uses: actions/checkout@v2
+      - run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            cmake -B build
+          else
+            brew install ninja gcc llvm
+            cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+          fi
+          cmake --build build
+          cmake -B build
+          cd build 
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            ctest -c ${{matrix.build_type}}
+          else
+            ctest
+        shell: bash
