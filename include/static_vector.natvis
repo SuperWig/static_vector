@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="dpm::aligned_storage&lt;*&gt;">
+	<DisplayString>{($T1)data}</DisplayString>
+  </Type>
+  <Type Name="my_int">
+	<DisplayString>{value}</DisplayString>
+  </Type>
+  <Type Name="dpm::static_vector&lt;*,*&gt;">
+	<DisplayString>{{size = {size_}, capacity = {$T2}}}</DisplayString>
+	<Expand>
+		<Item Name="[size]">size_</Item>
+		<Item Name="[capacity]">$T2</Item>
+		<ArrayItems>
+			<Size>size_</Size>
+			<ValuePointer>($T1*)&amp;storage_</ValuePointer>
+		</ArrayItems>
+	</Expand>
+  </Type>
+</AutoVisualizer>
