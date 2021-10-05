@@ -31,3 +31,4 @@ jobs:
           else
             ctest
         shell: bash
+
