@@ -123,7 +123,7 @@ namespace dpm
             }
             size_ = sz;
         }
-        constexpr void resize(size_type sz, const value_type& c);
+        //constexpr void resize(size_type sz, const value_type& c);
 
         // 5.6, element and data access:
 

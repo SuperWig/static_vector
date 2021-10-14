@@ -30,4 +30,5 @@ jobs:
             ctest -c ${{matrix.build_type}}
           else
             ctest
+          fi
         shell: bash
