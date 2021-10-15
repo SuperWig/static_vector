@@ -1,6 +1,7 @@
 #pragma once
 
-// #include <algorithm>
+#include <algorithm>
+#include <array>
 #include <cassert>
 #include <memory>
 #include <type_traits>
@@ -25,8 +26,11 @@ namespace dpm
     template <class T, std::size_t Capacity>
     class static_vector
     {
-        uninitialized_storage<T, Capacity> storage_;
-        std::size_t size_ = 0;
+        using storage_type = std::conditional_t<std::is_trivial_v<T>, std::array<T, Capacity>, uninitialized_storage<T, Capacity>>;
+        storage_type storage_;
+        std::size_t size_;
+
+        constexpr static bool is_trivial = std::is_trivial_v<T>;
 
     public:
         using value_type = T;
@@ -41,8 +45,12 @@ namespace dpm
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        //// 5.2, copy/move construction:
-        constexpr static_vector() noexcept = default;
+        //// 5.2, trivial copy/move construction:
+        static_vector() = default;
+        static_vector(const static_vector& other) requires is_trivial = default;
+        static_vector(static_vector&& other) requires is_trivial = default;
+
+        //// 5.2, non-trivial copy/move construction:
         constexpr static_vector(const static_vector& other) : size_(other.size_)
         {
             std::ranges::uninitialized_copy(other, *this);
@@ -76,16 +84,26 @@ namespace dpm
         {
             std::ranges::uninitialized_copy(il, *this);
         }
+
         // 5.3, copy/move assignment:
-        //constexpr static_vector& operator=(const static_vector& other) noexcept(std::is_nothrow_copy_assignable_v<value_type>);
-        //constexpr static_vector& operator=(static_vector&& other) noexcept(std::is_nothrow_move_assignable_v<value_type>);
+        static_vector& operator=(const static_vector& other) requires is_trivial = default;
+        static_vector& operator=(static_vector&& other) requires is_trivial = default;
+        constexpr static_vector& operator=(const static_vector& other) noexcept(std::is_nothrow_copy_assignable_v<value_type>) 
+        {
+            // TODO
+        }
+        constexpr static_vector& operator=(static_vector&& other) noexcept(std::is_nothrow_move_assignable_v<value_type>)
+        {
+            // TODO
+        }
         //template <class InputIterator>
         //constexpr void assign(InputIterator first, InputIterator last);
         //constexpr void assign(size_type n, const value_type& u);
         //constexpr void assign(std::initializer_list<value_type> il);
 
         // 5.4, destruction
-        constexpr ~static_vector() noexcept
+        constexpr ~static_vector() noexcept requires is_trivial = default;
+        constexpr ~static_vector()
         {
             std::ranges::destroy_n(begin(), size_);
         }
