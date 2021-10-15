@@ -23,11 +23,14 @@ jobs:
             brew install ninja gcc llvm
             cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
           fi
-          cmake --build build
-          cmake -B build
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            cmake --build build --config ${{matrix.build_type}}
+          else
+            cmake --build build
+          fi
           cd build 
           if [ "$RUNNER_OS" == "Windows" ]; then
-            ctest -c ${{matrix.build_type}}
+            ctest -C ${{matrix.build_type}}
           else
             ctest
           fi
