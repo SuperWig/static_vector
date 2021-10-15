@@ -6,11 +6,11 @@
 using trivial_vector = dpm::static_vector<int, 2>;
 using non_trivial_vector = dpm::static_vector<std::string, 2>;
 
-static_assert(std::is_trivial_v<trivial_vector>, "trivial_vector isn't trivial.");
-static_assert(!std::is_trivial_v<non_trivial_vector>, "non_trivial_vector is trivial.");
+//static_assert(std::is_trivial_v<trivial_vector>, "trivial_vector isn't trivial.");
+//static_assert(!std::is_trivial_v<non_trivial_vector>, "non_trivial_vector is trivial.");
 
-static_assert(std::is_trivially_constructible_v<trivial_vector>, "trivial_vector isn't trivially default constructible.");
-static_assert(!std::is_trivially_constructible_v<non_trivial_vector>, "non_trivial_vector is trivially default constructible.");
+//static_assert(std::is_trivially_constructible_v<trivial_vector>, "trivial_vector isn't trivially default constructible.");
+//static_assert(!std::is_trivially_constructible_v<non_trivial_vector>, "non_trivial_vector is trivially default constructible.");
 
 static_assert(std::is_trivially_copy_constructible_v<trivial_vector>, "trivial_vector isn't trivially copy constructible.");
 static_assert(!std::is_trivially_copy_constructible_v<non_trivial_vector>, "non_trivial_vector is trivially copy constructible.");

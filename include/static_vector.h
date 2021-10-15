@@ -28,7 +28,7 @@ namespace dpm
     {
         using storage_type = std::conditional_t<std::is_trivial_v<T>, std::array<T, Capacity>, uninitialized_storage<T, Capacity>>;
         storage_type storage_;
-        std::size_t size_;
+        std::size_t size_ = 0;
 
         constexpr static bool is_trivial = std::is_trivial_v<T>;
 
@@ -88,7 +88,7 @@ namespace dpm
         // 5.3, copy/move assignment:
         static_vector& operator=(const static_vector& other) requires is_trivial = default;
         static_vector& operator=(static_vector&& other) requires is_trivial = default;
-        constexpr static_vector& operator=(const static_vector& other) noexcept(std::is_nothrow_copy_assignable_v<value_type>) 
+        constexpr static_vector& operator=(const static_vector& other) noexcept(std::is_nothrow_copy_assignable_v<value_type>)
         {
             // TODO
         }

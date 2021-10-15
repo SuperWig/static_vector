@@ -81,9 +81,9 @@ TEST_CASE("size/capacity")
 {
     dpm::static_vector<int, 2> sv1;
     dpm::static_vector<int, 2> sv2(2);
-    // REQUIRE(sv1.size() == 0);
+    REQUIRE(sv1.size() == 0);
     REQUIRE(sv2.size() == 2);
-    // REQUIRE(sv1.empty());
+    REQUIRE(sv1.empty());
     REQUIRE(!sv2.empty());
     REQUIRE(sv1.capacity() == 2);
     REQUIRE(sv2.capacity() == 2);
@@ -93,7 +93,7 @@ TEST_CASE("size/capacity")
     bob.resize(1);
     bob.resize(3);
     dpm::static_vector<std::string, 3> bill;
-    // bill.resize(2);
+    bill.resize(2);
 }
 
 TEST_CASE("ranges")
