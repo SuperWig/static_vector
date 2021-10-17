@@ -119,6 +119,23 @@ TEST_CASE("size/capacity")
     bill.resize(2);
 }
 
+TEST_CASE("access")
+{
+    dpm::static_vector<int, 3> test{ 1, 2, 3 };
+    REQUIRE(test.front() == 1);
+    REQUIRE(std::is_same_v<decltype(test.front()), int&>);
+
+    REQUIRE(test.back() == 3);
+    REQUIRE(std::is_same_v<decltype(test.back()), int&>);
+
+    const dpm::static_vector<int, 3> const_test{ 1, 2, 3 };
+    REQUIRE(const_test.front() == 1);
+    REQUIRE(std::is_same_v<decltype(const_test.front()), const int&>);
+
+    REQUIRE(const_test.back() == 3);
+    REQUIRE(std::is_same_v<decltype(const_test.back()), const int&>);
+}
+
 TEST_CASE("ranges")
 {
     SUBCASE("range-based for loop")

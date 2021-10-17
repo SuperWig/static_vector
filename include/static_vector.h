@@ -134,63 +134,7 @@ namespace dpm
             std::ranges::destroy_n(begin(), size_);
         }
 
-        // 5.5, size/capacity:
-        [[nodiscard]] constexpr bool empty() const noexcept
-        {
-            return size_ == 0;
-        }
-        [[nodiscard]] constexpr size_type size() const noexcept
-        {
-            return size_;
-        }
-        [[nodiscard]] static constexpr size_type max_size() noexcept
-        {
-            return Capacity;
-        }
-        [[nodiscard]] static constexpr size_type capacity() noexcept
-        {
-            return Capacity;
-        }
-        constexpr void resize(size_type sz)
-        {
-            static_assert(std::is_default_constructible_v<value_type>, "T must be default constuctible");
-            assert(sz <= capacity());
-            if (sz < size_)
-            {
-                const auto amount = size_ - sz;
-                std::ranges::destroy_n(data() + sz, amount);
-            }
-            else
-            {
-                const auto amount = sz - size_;
-                std::ranges::uninitialized_default_construct_n(end(), amount);
-            }
-            size_ = sz;
-        }
-        // TODO: constexpr void resize(size_type sz, const value_type& c);
-
-        // 5.6, element and data access:
-
-        [[nodiscard]] constexpr reference operator[](size_t n) noexcept
-        {
-            assert(n < size_ && n >= 0);
-            return data()[n];
-        }
-        [[nodiscard]] constexpr const_reference operator[](size_t n) const noexcept
-        {
-            assert(n < size_ && n >= 0);
-            return data()[n];
-        }
-
-        [[nodiscard]] constexpr pointer data() noexcept
-        {
-            return storage_.data();
-        }
-        [[nodiscard]] constexpr const_pointer data() const noexcept
-        {
-            return storage_.data();
-        }
-
+        // iterators
         [[nodiscard]] constexpr iterator begin() noexcept
         {
             return data();
@@ -239,5 +183,108 @@ namespace dpm
         {
             return rend();
         }
+
+        // 5.5, size/capacity:
+        [[nodiscard]] constexpr bool empty() const noexcept
+        {
+            return size_ == 0;
+        }
+        [[nodiscard]] constexpr size_type size() const noexcept
+        {
+            return size_;
+        }
+        [[nodiscard]] static constexpr size_type max_size() noexcept
+        {
+            return Capacity;
+        }
+        [[nodiscard]] static constexpr size_type capacity() noexcept
+        {
+            return Capacity;
+        }
+        constexpr void resize(size_type sz)
+        {
+            static_assert(std::is_default_constructible_v<value_type>, "T must be default constuctible");
+            assert(sz <= capacity());
+            if (sz < size_)
+            {
+                const auto amount = size_ - sz;
+                std::ranges::destroy_n(data() + sz, amount);
+            }
+            else
+            {
+                const auto amount = sz - size_;
+                std::ranges::uninitialized_default_construct_n(end(), amount);
+            }
+            size_ = sz;
+        }
+        // TODO: constexpr void resize(size_type sz, const value_type& c);
+
+        // 5.6, element and data access:
+
+        [[nodiscard]] constexpr reference operator[](size_t n) noexcept
+        {
+            assert(n < size_ && n >= 0);
+            return data()[n];
+        }
+        [[nodiscard]] constexpr const_reference operator[](size_t n) const noexcept
+        {
+            assert(n < size_ && n >= 0);
+            return data()[n];
+        }
+
+        [[nodiscard]] constexpr reference front()
+        {
+            return *begin();
+        }
+        [[nodiscard]] constexpr const_reference front() const
+        {
+            return *begin();
+        }
+
+        [[nodiscard]] constexpr reference back()
+        {
+            return *(begin() + size_ - 1);
+        }
+        [[nodiscard]] constexpr const_reference back() const
+        {
+            return *(begin() + size_ - 1);
+        }
+
+        [[nodiscard]] constexpr pointer data() noexcept
+        {
+            return storage_.data();
+        }
+        [[nodiscard]] constexpr const_pointer data() const noexcept
+        {
+            return storage_.data();
+        }
+        
+        // 5.7, modifiers:
+        // TODO: constexpr iterator insert(const_iterator position, const value_type& x);
+        // TODO: constexpr iterator insert(const_iterator position, value_type&& x);
+        // TODO: constexpr iterator insert(const_iterator position, size_type n, const value_type& x);
+        // TODO: template <class InputIterator>
+        // TODO: constexpr iterator insert(const_iterator position, InputIterator first, InputIterator last);
+        // TODO: constexpr iterator insert(const_iterator position, initializer_list<value_type> il);
+
+        // TODO: template <class... Args>
+        // TODO: constexpr iterator emplace(const_iterator position, Args&&... args);
+        // TODO: template <class... Args>
+        // TODO: constexpr reference emplace_back(Args&&... args);
+        // TODO: constexpr void push_back(const value_type& x);
+        // TODO: constexpr void push_back(value_type&& x);
+
+        // TODO: constexpr void pop_back();
+        // TODO: constexpr iterator erase(const_iterator position);
+        // TODO: constexpr iterator erase(const_iterator first, const_iterator last);
+
+        // TODO: constexpr void clear() noexcept;
+
+        // TODO: constexpr void swap(static_vector& x) noexcept(is_nothrow_swappable_v<value_type>&& is_nothrow_move_constructible_v<value_type>);
     };
+
+    // TODO: // 5.8, specialized algorithms:
+    // TODO: template <typename T, size_t N>
+    // TODO: constexpr void swap(static_vector<T, N>& x, static_vector<T, N>& y) noexcept(noexcept(x.swap(y)));
+                    
 }
