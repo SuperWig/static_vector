@@ -1,3 +1,6 @@
+// Copyright (c) Daniel Marshall.
+// SPDX-License-Identifier: BSL-1.0
+
 #include "static_vector.h"
 
 #include <string>

@@ -1,3 +1,6 @@
+// Copyright (c) Daniel Marshall.
+// SPDX-License-Identifier: BSL-1.0
+
 #pragma once
 
 #include <algorithm>
@@ -258,7 +261,7 @@ namespace dpm
         {
             return storage_.data();
         }
-        
+
         // 5.7, modifiers:
         // TODO: constexpr iterator insert(const_iterator position, const value_type& x);
         // TODO: constexpr iterator insert(const_iterator position, value_type&& x);
@@ -286,5 +289,5 @@ namespace dpm
     // TODO: // 5.8, specialized algorithms:
     // TODO: template <typename T, size_t N>
     // TODO: constexpr void swap(static_vector<T, N>& x, static_vector<T, N>& y) noexcept(noexcept(x.swap(y)));
-                    
+
 }
