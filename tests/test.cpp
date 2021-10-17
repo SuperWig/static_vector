@@ -77,6 +77,29 @@ TEST_CASE("constructors/destructors")
     }
 }
 
+TEST_CASE("assignment")
+{
+    SUBCASE("copy")
+    {
+        dpm::static_vector<std::string, 3> v1{ "this is long string 1.", "this is long string 3." };
+        dpm::static_vector<std::string, 3> v2{ "this is long string 2." };
+        const auto* test = v1[0].data();
+        v1 = v2;
+        REQUIRE(v1[0].data() == test);
+        REQUIRE(v1[0] == "this is long string 2.");
+        REQUIRE(v2[0] == "this is long string 2.");
+    }
+    SUBCASE("move")
+    {
+        dpm::static_vector<std::string, 3> v1{ "this is long string 1." };
+        dpm::static_vector<std::string, 3> v2{ "this is long string 2.", "this is long string 3." };
+        const auto* test = v2[0].data();
+        v1 = std::move(v2);
+        REQUIRE(v1[0].data() == test);
+        REQUIRE(v2.empty());
+    }
+}
+
 TEST_CASE("size/capacity")
 {
     dpm::static_vector<int, 2> sv1;
@@ -98,11 +121,14 @@ TEST_CASE("size/capacity")
 
 TEST_CASE("ranges")
 {
-    dpm::static_vector<int, 5> test(5, 2);
-    auto begin = test.begin();
-    auto end = test.end();
-    for (auto i : test)
+    SUBCASE("range-based for loop")
     {
-        REQUIRE(i == 2);
+        dpm::static_vector<int, 5> test(5, 2);
+        auto begin = test.begin();
+        auto end = test.end();
+        for (auto i : test)
+        {
+            REQUIRE(i == 2);
+        }
     }
 }

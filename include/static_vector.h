@@ -45,12 +45,12 @@ namespace dpm
         using reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        //// 5.2, trivial copy/move construction:
+        // 5.2, trivial copy/move construction:
         static_vector() = default;
         static_vector(const static_vector& other) requires is_trivial = default;
         static_vector(static_vector&& other) requires is_trivial = default;
 
-        //// 5.2, non-trivial copy/move construction:
+        // 5.2, non-trivial copy/move construction:
         constexpr static_vector(const static_vector& other) : size_(other.size_)
         {
             std::ranges::uninitialized_copy(other, *this);
@@ -88,18 +88,44 @@ namespace dpm
         // 5.3, copy/move assignment:
         static_vector& operator=(const static_vector& other) requires is_trivial = default;
         static_vector& operator=(static_vector&& other) requires is_trivial = default;
+
         constexpr static_vector& operator=(const static_vector& other) noexcept(std::is_nothrow_copy_assignable_v<value_type>)
         {
-            // TODO
+            if (size_ >= other.size_)
+            {
+                const auto [_, out] = std::ranges::copy(other, begin());
+                std::ranges::destroy(out, end());
+                size_ = other.size_;
+            }
+            else
+            {
+                auto [copy_end, this_begin] = std::ranges::copy_n(other.begin(), size_, begin());
+                size_ = other.size_;
+                std::ranges::uninitialized_copy(copy_end, other.end(), this_begin, end());
+            }
+            return *this;
         }
         constexpr static_vector& operator=(static_vector&& other) noexcept(std::is_nothrow_move_assignable_v<value_type>)
         {
-            // TODO
+            if (size_ >= other.size_)
+            {
+                const auto [_, out] = std::ranges::move(other, begin());
+                std::ranges::destroy(out, end());
+                size_ = other.size_;
+            }
+            else
+            {
+                auto [move_end, this_begin] = std::ranges::copy_n(std::make_move_iterator(other.begin()), size_, begin());
+                size_ = other.size_;
+                std::ranges::uninitialized_move(move_end, std::make_move_iterator(other.end()), this_begin, end());
+            }
+            other.size_ = 0;
+            return *this;
         }
-        //template <class InputIterator>
-        //constexpr void assign(InputIterator first, InputIterator last);
-        //constexpr void assign(size_type n, const value_type& u);
-        //constexpr void assign(std::initializer_list<value_type> il);
+        //      template <class InputIterator>
+        // TODO: constexpr void assign(InputIterator first, InputIterator last);
+        // TODO: constexpr void assign(size_type n, const value_type& u);
+        // TODO: constexpr void assign(std::initializer_list<value_type> il);
 
         // 5.4, destruction
         constexpr ~static_vector() noexcept requires is_trivial = default;
@@ -141,7 +167,7 @@ namespace dpm
             }
             size_ = sz;
         }
-        //constexpr void resize(size_type sz, const value_type& c);
+        // TODO: constexpr void resize(size_type sz, const value_type& c);
 
         // 5.6, element and data access:
 
