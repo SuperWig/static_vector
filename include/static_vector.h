@@ -281,7 +281,11 @@ namespace dpm
         // TODO: constexpr iterator erase(const_iterator position);
         // TODO: constexpr iterator erase(const_iterator first, const_iterator last);
 
-        // TODO: constexpr void clear() noexcept;
+        constexpr void clear() noexcept
+        {
+            std::ranges::destroy(*this);
+            size_ = 0;
+        }
 
         // TODO: constexpr void swap(static_vector& x) noexcept(is_nothrow_swappable_v<value_type>&& is_nothrow_move_constructible_v<value_type>);
     };

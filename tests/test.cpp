@@ -139,6 +139,20 @@ TEST_CASE("access")
     REQUIRE(std::is_same_v<decltype(const_test.back()), const int&>);
 }
 
+TEST_CASE("modifiers")
+{
+    SUBCASE("clear")
+    {
+        dpm::static_vector<constructor_count, 3> test(3);
+        REQUIRE(!test.empty());
+        REQUIRE(constructor_count::count > 0);
+        test.clear();
+        REQUIRE(test.empty());
+        REQUIRE(constructor_count::count == 0);
+    }
+}
+
+
 TEST_CASE("ranges")
 {
     SUBCASE("range-based for loop")
