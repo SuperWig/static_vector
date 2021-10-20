@@ -19,3 +19,14 @@ if (DPM_BUILD_TESTS)
 	include(CTest)
 	add_subdirectory(tests)
 endif()
+
+install(TARGETS static_vector EXPORT dpm-static_vector-config)
+install(
+	EXPORT dpm-static_vector-config
+	NAMESPACE dpm::
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/dpm-static_vector
+)
+install(
+	DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dpm
+)

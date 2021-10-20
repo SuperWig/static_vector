@@ -5,7 +5,11 @@ FetchContent_Declare(doctest
 	GIT_TAG 2.4.6
 )
 
-FetchContent_MakeAvailable(doctest)
+FetchContent_GetProperties(doctest)
+if (NOT doctest_POPULATED)
+	FetchContent_Populate(doctest)
+	add_subdirectory(${doctest_SOURCE_DIR} ${doctest_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
 
 add_executable(sv_test "test.cpp")
 target_link_libraries(sv_test PRIVATE static_vector doctest_with_main)
