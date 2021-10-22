@@ -33,7 +33,11 @@ namespace dpm
         storage_type storage_;
         std::size_t size_ = 0;
 
-        constexpr static bool is_trivial = std::is_trivial_v<T>;
+        constexpr static bool trivial_copy_ctor = std::is_trivially_copy_constructible_v<T>;
+        constexpr static bool trivial_move_ctor = std::is_trivially_move_constructible_v<T>;
+        constexpr static bool trivial_copy_assignable = std::is_trivially_copy_assignable_v<T>;
+        constexpr static bool trivial_move_assignable = std::is_trivially_move_assignable_v<T>;
+        constexpr static bool trivial_dtor = std::is_trivially_destructible_v<T>;
 
     public:
         using value_type = T;
@@ -50,8 +54,8 @@ namespace dpm
 
         // 5.2, trivial copy/move construction:
         static_vector() = default;
-        static_vector(const static_vector& other) requires is_trivial = default;
-        static_vector(static_vector&& other) requires is_trivial = default;
+        static_vector(const static_vector& other) requires trivial_copy_ctor = default;
+        static_vector(static_vector&& other) requires trivial_move_ctor = default;
 
         // 5.2, non-trivial copy/move construction:
         constexpr static_vector(const static_vector& other) : size_(other.size_)
@@ -89,8 +93,8 @@ namespace dpm
         }
 
         // 5.3, copy/move assignment:
-        static_vector& operator=(const static_vector& other) requires is_trivial = default;
-        static_vector& operator=(static_vector&& other) requires is_trivial = default;
+        static_vector& operator=(const static_vector& other) requires trivial_copy_assignable = default;
+        static_vector& operator=(static_vector&& other) requires trivial_move_assignable = default;
 
         constexpr static_vector& operator=(const static_vector& other) noexcept(std::is_nothrow_copy_assignable_v<value_type>)
         {
@@ -131,7 +135,7 @@ namespace dpm
         // TODO: constexpr void assign(std::initializer_list<value_type> il);
 
         // 5.4, destruction
-        constexpr ~static_vector() noexcept requires is_trivial = default;
+        constexpr ~static_vector() noexcept requires trivial_dtor = default;
         constexpr ~static_vector()
         {
             std::ranges::destroy_n(begin(), size_);
