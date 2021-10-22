@@ -276,12 +276,28 @@ namespace dpm
 
         // TODO: template <class... Args>
         // TODO: constexpr iterator emplace(const_iterator position, Args&&... args);
-        // TODO: template <class... Args>
-        // TODO: constexpr reference emplace_back(Args&&... args);
-        // TODO: constexpr void push_back(const value_type& x);
-        // TODO: constexpr void push_back(value_type&& x);
+        template <class... Args>
+        constexpr reference emplace_back(Args&&... args)
+        {
+            assert(size() < capacity());
+            auto* emplaced = std::construct_at(end(), std::forward<value_type>(args)...);
+            ++size_;
+            return *emplaced;
+        }
+        constexpr void push_back(const value_type& x)
+        {
+            emplace_back(x);
+        }
+        constexpr void push_back(value_type&& x)
+        {
+            emplace_back(std::move(x));
+        }
 
-        // TODO: constexpr void pop_back();
+        constexpr void pop_back()
+        {
+            std::destroy_at(&back());
+            --size_;
+        }
         // TODO: constexpr iterator erase(const_iterator position);
         // TODO: constexpr iterator erase(const_iterator first, const_iterator last);
 

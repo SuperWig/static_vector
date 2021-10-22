@@ -10,6 +10,8 @@
 
 // static_assert(std::is_empty_v<dpm::static_vector<int, 0>>);
 
+//TODO: replace std::string usage with a custom type.
+
 struct my_int
 {
     int value = 2;
@@ -149,6 +151,31 @@ TEST_CASE("modifiers")
         test.clear();
         REQUIRE(test.empty());
         REQUIRE(constructor_count::count == 0);
+    }
+    //TODO: actually test these
+    SUBCASE("emplace_back")  
+    {
+        dpm::static_vector<std::string, 3> v1;
+        v1.emplace_back("hello");
+        v1.emplace_back("world");
+        v1.emplace_back("!");
+    }
+    SUBCASE("push_back")
+    {
+        dpm::static_vector<std::string, 3> v1;
+        v1.push_back("hello");
+
+        std::string world = "world and lets disable SSO."; 
+        auto original = world.data();
+        v1.push_back(std::move(world));
+        REQUIRE(original == v1[1].data());
+    }
+    SUBCASE("pop_back")
+    {
+        dpm::static_vector<std::string, 3> v1;
+        v1.push_back("hello this is a long string.");
+        v1.pop_back();
+        v1.push_back("hello");
     }
 }
 
