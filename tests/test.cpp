@@ -153,7 +153,7 @@ TEST_CASE("modifiers")
         REQUIRE(constructor_count::count == 0);
     }
     //TODO: actually test these
-    SUBCASE("emplace_back")  
+    SUBCASE("emplace_back")
     {
         dpm::static_vector<std::string, 3> v1;
         v1.emplace_back("hello");
@@ -165,7 +165,7 @@ TEST_CASE("modifiers")
         dpm::static_vector<std::string, 3> v1;
         v1.push_back("hello");
 
-        std::string world = "world and lets disable SSO."; 
+        std::string world = "world and lets disable SSO.";
         auto original = world.data();
         v1.push_back(std::move(world));
         REQUIRE(original == v1[1].data());
@@ -176,6 +176,61 @@ TEST_CASE("modifiers")
         v1.push_back("hello this is a long string.");
         v1.pop_back();
         v1.push_back("hello");
+    }
+    SUBCASE("swap")
+    {
+        {
+            dpm::static_vector<std::string, 3> v1{ "this is a test, homes." };
+            dpm::static_vector<std::string, 3> v2{ "Bob is so very cool.", "Bob is the best homie" };
+
+            auto v10 = v1[0].data();
+            auto v20 = v2[0].data();
+            auto v21 = v2[1].data();
+
+            v1.swap(v2);
+            REQUIRE(v1.size() == 2);
+            REQUIRE(v2.size() == 1);
+
+            REQUIRE(v1[0] == v20);
+            REQUIRE(v1[1] == v21);
+            REQUIRE(v2[0] == v10);
+        }
+        {
+            dpm::static_vector<std::string, 3> v1{ "Bob is so very cool.", "Bob is the best homie" };
+            dpm::static_vector<std::string, 3> v2{ "this is a test, homes." };
+
+            auto v10 = v1[0].data();
+            auto v11 = v1[1].data();
+            auto v20 = v2[0].data();
+
+            v1.swap(v2);
+
+            REQUIRE(v1.size() == 1);
+            REQUIRE(v2.size() == 2);
+
+            REQUIRE(v1[0] == v20);
+            REQUIRE(v2[0] == v10);
+            REQUIRE(v2[1] == v11);
+        }
+        {
+            dpm::static_vector<std::string, 3> v1{ "Bob is so very cool.", "Bob is the best homie" };
+            dpm::static_vector<std::string, 3> v2{ "this is a test, homes.", "just a long string" };
+
+            auto v10 = v1[0].data();
+            auto v11 = v1[1].data();
+            auto v20 = v2[0].data();
+            auto v21 = v2[1].data();
+
+            v1.swap(v2);
+
+            REQUIRE(v1.size() == 2);
+            REQUIRE(v2.size() == 2);
+
+            REQUIRE(v1[0] == v20);
+            REQUIRE(v1[1] == v21);
+            REQUIRE(v2[0] == v10);
+            REQUIRE(v2[1] == v11);
+        }
     }
 }
 

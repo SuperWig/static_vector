@@ -307,11 +307,32 @@ namespace dpm
             size_ = 0;
         }
 
-        // TODO: constexpr void swap(static_vector& x) noexcept(is_nothrow_swappable_v<value_type>&& is_nothrow_move_constructible_v<value_type>);
+        constexpr void swap(static_vector& other) noexcept(std::is_nothrow_swappable_v<value_type>&& std::is_nothrow_move_constructible_v<value_type>) 
+            requires std::is_move_constructible_v<value_type> && std::is_swappable_v<value_type>
+        {
+            // Could this be simpler?
+            auto [smaller_begin, smaller_end, larger_begin, larger_end] = [&] {
+                if (size_ < other.size_)
+                {
+                    return std::array<iterator, 4>{ begin(), end(), other.begin(), other.end() };
+                }
+                return std::array<iterator, 4>{ other.begin(), other.end(), begin(), end() };
+            }();
+
+            for (; smaller_begin != smaller_end; ++smaller_begin, ++larger_begin)
+            {
+                std::iter_swap(smaller_begin, larger_begin);
+            }
+            std::uninitialized_move(larger_begin, larger_end, smaller_begin);
+            std::swap(size_, other.size_);
+        }
     };
 
-    // TODO: // 5.8, specialized algorithms:
-    // TODO: template <typename T, size_t N>
-    // TODO: constexpr void swap(static_vector<T, N>& x, static_vector<T, N>& y) noexcept(noexcept(x.swap(y)));
+    // 5.8, specialized algorithms:
+    template <typename T, size_t N>
+    constexpr void swap(static_vector<T, N>& x, static_vector<T, N>& y) noexcept(noexcept(x.swap(y)))
+    {
+        x.swap(y);
+    }
 
 }
