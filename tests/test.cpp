@@ -158,7 +158,8 @@ TEST_CASE("modifiers")
         dpm::static_vector<std::string, 3> v1;
         v1.emplace_back("hello");
         v1.emplace_back("world");
-        v1.emplace_back("!");
+        v1.emplace_back(3, 'c');
+
     }
     SUBCASE("push_back")
     {

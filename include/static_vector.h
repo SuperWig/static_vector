@@ -280,7 +280,7 @@ namespace dpm
         constexpr reference emplace_back(Args&&... args)
         {
             assert(size() < capacity());
-            auto* emplaced = std::construct_at(end(), std::forward<value_type>(args)...);
+            auto* emplaced = std::construct_at(end(), std::forward<Args>(args)...);
             ++size_;
             return *emplaced;
         }
