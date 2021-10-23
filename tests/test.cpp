@@ -233,6 +233,28 @@ TEST_CASE("modifiers")
             REQUIRE(v2[1] == v11);
         }
     }
+    SUBCASE("insert")
+    {
+        {
+            dpm::static_vector<int, 5> v1{ 1, 2, 3 };
+            auto inserted = v1.insert(v1.begin() + 1, 5);
+            REQUIRE(v1.size() == 4);
+            REQUIRE(*inserted == 5);
+        }
+        {
+            dpm::static_vector<int, 5> v1{ 1, 2, 3 };
+            auto inserted = v1.insert(v1.begin(), 2, 7);
+            REQUIRE(v1.size() == 5);
+            REQUIRE(inserted == &v1[0]);
+        }
+        {
+            dpm::static_vector<std::string, 5> v1{ "hello", "world" };
+            std::array<std::string, 3> str_arr{ "this", "is", "cool" };
+            auto inserted = v1.insert(v1.begin() + 1, str_arr.begin(), str_arr.end());
+            REQUIRE(v1.size() == 5);
+            REQUIRE(inserted == &v1[1]);
+        }
+    }
 }
 
 

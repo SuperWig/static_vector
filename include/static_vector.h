@@ -29,6 +29,8 @@ namespace dpm
     template <class T, std::size_t Capacity>
     class static_vector
     {
+        static_assert(!std::is_const_v<T>, "static_vector can't contain const elements");
+
         using storage_type = std::conditional_t<std::is_trivial_v<T>, std::array<T, Capacity>, uninitialized_storage<T, Capacity>>;
         storage_type storage_;
         std::size_t size_ = 0;
@@ -267,15 +269,55 @@ namespace dpm
         }
 
         // 5.7, modifiers:
-        // TODO: constexpr iterator insert(const_iterator position, const value_type& x);
-        // TODO: constexpr iterator insert(const_iterator position, value_type&& x);
-        // TODO: constexpr iterator insert(const_iterator position, size_type n, const value_type& x);
-        // TODO: template <class InputIterator>
-        // TODO: constexpr iterator insert(const_iterator position, InputIterator first, InputIterator last);
-        // TODO: constexpr iterator insert(const_iterator position, initializer_list<value_type> il);
+        constexpr iterator insert(const_iterator position, const value_type& x)
+        {
+            assert(size() < capacity());
+            emplace_back(x);
+            return std::rotate(const_cast<iterator>(position), end() - 1, end()) - 1;
+        }
+        constexpr iterator insert(const_iterator position, value_type&& x)
+        {
+            assert(size() < capacity());
+            emplace_back(std::move(x));
+            return std::rotate(const_cast<iterator>(position), end() - 1, end()) - 1;
+        }
+        constexpr iterator insert(const_iterator position, size_type n, const value_type& x)
+        {
+            assert(size() + n <= capacity());
+            auto old_end = end();
+            for (size_t i = 0; i < n; ++i)
+            {
+                emplace_back(x);
+            }
+            auto pos = const_cast<iterator>(position);
+            std::rotate(pos, old_end, end());
+            return pos;
+        }
+        template <std::input_iterator InputIterator>
+        constexpr iterator insert(const_iterator position, InputIterator first, InputIterator last)
+        {
+            auto old_end = end();
+            size_ += std::distance(first, last);
+            assert(size() <= capacity());
+            std::ranges::uninitialized_copy(first, last, old_end, end());
 
-        // TODO: template <class... Args>
-        // TODO: constexpr iterator emplace(const_iterator position, Args&&... args);
+            auto pos = const_cast<iterator>(position);
+            std::rotate(pos, old_end, end());
+            return pos;
+        }
+        constexpr iterator insert(const_iterator position, std::initializer_list<value_type> il)
+        {
+            return insert(position, il.begin(), il.end());
+        }
+
+        template <class... Args>
+        constexpr iterator emplace(const_iterator position, Args&&... args)
+        {
+            assert(size() < capacity());
+            emplace_back(std::forward<Args>(args)...);
+            return std::rotate(iterator(position), end() - 1, end()) - 1;
+        }
+
         template <class... Args>
         constexpr reference emplace_back(Args&&... args)
         {
@@ -307,7 +349,7 @@ namespace dpm
             size_ = 0;
         }
 
-        constexpr void swap(static_vector& other) noexcept(std::is_nothrow_swappable_v<value_type>&& std::is_nothrow_move_constructible_v<value_type>) 
+        constexpr void swap(static_vector& other) noexcept(std::is_nothrow_swappable_v<value_type>&& std::is_nothrow_move_constructible_v<value_type>)
             requires std::is_move_constructible_v<value_type> && std::is_swappable_v<value_type>
         {
             // Could this be simpler?
