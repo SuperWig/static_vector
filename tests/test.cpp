@@ -90,6 +90,7 @@ TEST_CASE("assignment")
         dpm::static_vector<std::string, 3> v2{ "this is long string 2." };
         const auto* test = v1[0].data();
         v1 = v2;
+        REQUIRE(v1.size() == 1);
         REQUIRE(v1[0].data() == test);
         REQUIRE(v1[0] == "this is long string 2.");
         REQUIRE(v2[0] == "this is long string 2.");
@@ -100,6 +101,7 @@ TEST_CASE("assignment")
         dpm::static_vector<std::string, 3> v2{ "this is long string 2.", "this is long string 3." };
         const auto* test = v2[0].data();
         v1 = std::move(v2);
+        REQUIRE(v1.size() == 2);
         REQUIRE(v1[0].data() == test);
         REQUIRE(v2.empty());
     }

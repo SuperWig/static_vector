@@ -100,34 +100,20 @@ namespace dpm
 
         constexpr static_vector& operator=(const static_vector& other) noexcept(std::is_nothrow_copy_assignable_v<value_type>)
         {
-            if (size_ >= other.size_)
-            {
-                const auto [_, out] = std::ranges::copy(other, begin());
-                std::ranges::destroy(out, end());
-                size_ = other.size_;
-            }
-            else
-            {
-                auto [copy_end, this_begin] = std::ranges::copy_n(other.begin(), size_, begin());
-                size_ = other.size_;
-                std::ranges::uninitialized_copy(copy_end, other.end(), this_begin, end());
-            }
+            auto amount = std::min(size_, other.size_);
+            auto [copy_end, this_begin] = std::ranges::copy_n(other.begin(), amount, begin());
+            std::ranges::destroy(this_begin, end());
+            size_ = other.size_;
+            std::ranges::uninitialized_copy(copy_end, other.end(), this_begin, end());
             return *this;
         }
         constexpr static_vector& operator=(static_vector&& other) noexcept(std::is_nothrow_move_assignable_v<value_type>)
         {
-            if (size_ >= other.size_)
-            {
-                const auto [_, out] = std::ranges::move(other, begin());
-                std::ranges::destroy(out, end());
-                size_ = other.size_;
-            }
-            else
-            {
-                auto [move_end, this_begin] = std::ranges::copy_n(std::make_move_iterator(other.begin()), size_, begin());
-                size_ = other.size_;
-                std::ranges::uninitialized_move(move_end, std::make_move_iterator(other.end()), this_begin, end());
-            }
+            auto amount = std::min(size_, other.size_);
+            auto [move_end, this_begin] = std::ranges::copy_n(std::make_move_iterator(other.begin()), amount, begin());
+            std::ranges::destroy(this_begin, end());
+            size_ = other.size_;
+            std::ranges::uninitialized_move(move_end, std::make_move_iterator(other.end()), this_begin, end());
             other.size_ = 0;
             return *this;
         }
