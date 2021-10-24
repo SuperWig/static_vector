@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <compare>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -395,6 +396,19 @@ namespace dpm
             }
             std::uninitialized_move(larger_begin, larger_end, smaller_begin);
             std::swap(size_, other.size_);
+        }
+
+        constexpr bool operator==(const static_vector& other) const noexcept
+        {
+            if (size() != other.size())
+            {
+                return false;
+            }
+            return std::ranges::equal(*this, other);
+        }
+        constexpr auto operator<=>(const static_vector& other) const noexcept
+        {
+            return std::lexicographical_compare_three_way(begin(), end(), other.begin(), other.end());
         }
     };
 

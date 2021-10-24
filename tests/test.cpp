@@ -94,6 +94,7 @@ TEST_CASE("assignment")
         REQUIRE(v1[0].data() == test);
         REQUIRE(v1[0] == "this is long string 2.");
         REQUIRE(v2[0] == "this is long string 2.");
+        REQUIRE(v1 == v2);
     }
     SUBCASE("move")
     {
