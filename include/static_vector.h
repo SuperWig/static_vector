@@ -226,7 +226,21 @@ namespace dpm
             }
             size_ = sz;
         }
-        // TODO: constexpr void resize(size_type sz, const value_type& c);
+        constexpr void resize(size_type sz, const value_type& value)
+        {
+            assert(sz <= capacity());
+            if (sz < size_)
+            {
+                const auto amount = size_ - sz;
+                std::ranges::destroy_n(data() + sz, amount);
+            }
+            else
+            {
+                const auto amount = sz - size_;
+                std::ranges::uninitialized_fill_n(end(), amount, value);
+            }
+            size_ = sz;
+        }
 
         // 5.6, element and data access:
 

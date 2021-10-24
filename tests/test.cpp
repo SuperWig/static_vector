@@ -122,6 +122,14 @@ TEST_CASE("size/capacity")
     bob.resize(3);
     dpm::static_vector<std::string, 3> bill;
     bill.resize(2);
+
+    bill.clear();
+    bill.resize(3, "Yo");
+    
+    REQUIRE(bill.size() == 3);
+    REQUIRE(bill[0] == "Yo");
+    REQUIRE(bill[1] == "Yo");
+    REQUIRE(bill[2] == "Yo");
 }
 
 TEST_CASE("access")
