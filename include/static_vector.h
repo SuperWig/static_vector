@@ -100,11 +100,7 @@ namespace dpm
 
         constexpr static_vector& operator=(const static_vector& other) noexcept(std::is_nothrow_copy_assignable_v<value_type>)
         {
-            auto amount = std::min(size_, other.size_);
-            auto [copy_end, this_begin] = std::ranges::copy_n(other.begin(), amount, begin());
-            std::ranges::destroy(this_begin, end());
-            size_ = other.size_;
-            std::ranges::uninitialized_copy(copy_end, other.end(), this_begin, end());
+            assign(other.begin(), other.end());
             return *this;
         }
         constexpr static_vector& operator=(static_vector&& other) noexcept(std::is_nothrow_move_assignable_v<value_type>)
@@ -117,10 +113,29 @@ namespace dpm
             other.size_ = 0;
             return *this;
         }
-        //      template <class InputIterator>
-        // TODO: constexpr void assign(InputIterator first, InputIterator last);
-        // TODO: constexpr void assign(size_type n, const value_type& u);
-        // TODO: constexpr void assign(std::initializer_list<value_type> il);
+        template <std::input_iterator InputIterator>
+        constexpr void assign(InputIterator first, InputIterator last)
+        {
+            auto new_size = std::distance(first, last);
+            auto min = std::min<ptrdiff_t>(size_, new_size);
+
+            auto [in, out] = std::ranges::copy_n(first, min, begin());
+            auto [_, e] = std::ranges::uninitialized_copy(in, last, out, end());
+            std::ranges::destroy(e, end());
+            size_ = new_size;
+        }
+        constexpr void assign(size_type n, const value_type& value)
+        {
+            auto min = std::min(size_, n);
+            auto fill_end = std::ranges::fill_n(begin(), min, value);
+            auto e = std::ranges::uninitialized_fill_n(fill_end, n - min, value);
+            size_ = n;
+            std::ranges::destroy(e, end());
+        }
+        constexpr void assign(std::initializer_list<value_type> il)
+        {
+            assign(il.begin(), il.end());
+        }
 
         // 5.4, destruction
         constexpr ~static_vector() noexcept requires trivial_dtor = default;

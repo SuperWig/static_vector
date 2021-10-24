@@ -105,6 +105,19 @@ TEST_CASE("assignment")
         REQUIRE(v1[0].data() == test);
         REQUIRE(v2.empty());
     }
+    SUBCASE("assign(first, last)")
+    {
+        dpm::static_vector<std::string, 3> v1{ "I", "am", "Dan" };
+        dpm::static_vector<std::string, 3> v2{ "hello" };
+        v1.assign(v2.begin(), v2.end());
+    }
+    SUBCASE("assign(n, value)")
+    {
+        dpm::static_vector<std::string, 3> v1{ "I", "am"};
+        v1.assign(3, "Good");
+        v1.clear();
+        v1.assign(3, "Bad");
+    }
 }
 
 TEST_CASE("size/capacity")
