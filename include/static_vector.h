@@ -354,8 +354,21 @@ namespace dpm
             std::destroy_at(&back());
             --size_;
         }
-        // TODO: constexpr iterator erase(const_iterator position);
-        // TODO: constexpr iterator erase(const_iterator first, const_iterator last);
+        constexpr iterator erase(const_iterator position)
+        {
+            std::destroy_at(position);
+            auto pos = const_cast<iterator>(position);
+            std::ranges::rotate(pos, pos + 1, end());
+            --size_;
+            return pos;
+        }
+        constexpr iterator erase(const_iterator first, const_iterator last)
+        {
+            auto removed_end = const_cast<iterator>(std::ranges::destroy(first, last));
+            std::ranges::rotate(const_cast<iterator>(first), removed_end, end());
+            size_ -= std::distance(first, last);
+            return removed_end;
+        }
 
         constexpr void clear() noexcept
         {
@@ -363,7 +376,7 @@ namespace dpm
             size_ = 0;
         }
 
-        constexpr void swap(static_vector& other) noexcept(std::is_nothrow_swappable_v<value_type>&& std::is_nothrow_move_constructible_v<value_type>)
+        constexpr void swap(static_vector& other) noexcept(std::is_nothrow_swappable_v<value_type>&& std::is_nothrow_move_constructible_v<value_type>) 
             requires std::is_move_constructible_v<value_type> && std::is_swappable_v<value_type>
         {
             // Could this be simpler?

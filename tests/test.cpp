@@ -125,7 +125,7 @@ TEST_CASE("size/capacity")
 
     bill.clear();
     bill.resize(3, "Yo");
-    
+
     REQUIRE(bill.size() == 3);
     REQUIRE(bill[0] == "Yo");
     REQUIRE(bill[1] == "Yo");
@@ -167,7 +167,6 @@ TEST_CASE("modifiers")
         v1.emplace_back("hello");
         v1.emplace_back("world");
         v1.emplace_back(3, 'c');
-
     }
     SUBCASE("push_back")
     {
@@ -261,6 +260,23 @@ TEST_CASE("modifiers")
             auto inserted = v1.insert(v1.begin() + 1, str_arr.begin(), str_arr.end());
             REQUIRE(v1.size() == 5);
             REQUIRE(inserted == &v1[1]);
+        }
+    }
+    SUBCASE("erase")
+    {
+        {
+            dpm::static_vector<std::string, 3> vec{ "this", "is", "bob" };
+            vec.erase(vec.begin() + 1);
+            REQUIRE(vec.size() == 2);
+            REQUIRE(vec[0] == "this");
+            REQUIRE(vec[1] == "bob");
+        }
+        {
+            dpm::static_vector<std::string, 3> vec{ "this", "is", "bob" };
+            vec.erase(vec.begin(), vec.begin() + 2);
+            REQUIRE(vec.size() == 1);
+            REQUIRE(vec[0] == "bob");
+            vec.erase(vec.begin(), vec.begin());
         }
     }
 }
