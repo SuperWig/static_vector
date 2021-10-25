@@ -61,7 +61,8 @@ namespace dpm
         static_vector(static_vector&& other) requires trivial_move_ctor = default;
 
         // 5.2, non-trivial copy/move construction:
-        constexpr static_vector(const static_vector& other) noexcept(std::is_nothrow_constructible_v<value_type>) : size_(other.size_)
+        constexpr static_vector(const static_vector& other) noexcept(std::is_nothrow_constructible_v<value_type>)
+            : size_(other.size_)
         {
             ranges::uninitialized_copy(other, *this);
         }
@@ -213,8 +214,8 @@ namespace dpm
         [[nodiscard]] constexpr reference back() { return *(begin() + size_ - 1); }
         [[nodiscard]] constexpr const_reference back() const { return *(begin() + size_ - 1); }
 
-        [[nodiscard]] constexpr pointer data() noexcept { return storage_.data(); }
-        [[nodiscard]] constexpr const_pointer data() const noexcept { return storage_.data(); }
+        [[nodiscard]] constexpr pointer data() noexcept { return std::launder(storage_.data()); }
+        [[nodiscard]] constexpr const_pointer data() const noexcept { return std::launder(storage_.data()); }
 
         // 5.7, modifiers:
         constexpr iterator insert(const_iterator position, const value_type& x)
