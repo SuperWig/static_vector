@@ -13,6 +13,11 @@
 
 namespace dpm
 {
+    namespace
+    {
+        namespace ranges = std::ranges;
+    }
+
     template <class T, std::size_t N>
     struct uninitialized_storage
     {
@@ -58,25 +63,25 @@ namespace dpm
         // 5.2, non-trivial copy/move construction:
         constexpr static_vector(const static_vector& other) noexcept(std::is_nothrow_constructible_v<value_type>) : size_(other.size_)
         {
-            std::ranges::uninitialized_copy(other, *this);
+            ranges::uninitialized_copy(other, *this);
         }
         constexpr static_vector(static_vector&& other) noexcept(std::is_nothrow_move_constructible_v<value_type>)
             : size_(std::exchange(other.size_, 0))
         {
             static_assert(std::is_move_constructible_v<value_type>, "value_type must be move constructible.");
-            std::ranges::uninitialized_move_n(other.begin(), size_, begin(), end());
+            ranges::uninitialized_move_n(other.begin(), size_, begin(), end());
         }
         constexpr explicit static_vector(size_type count) : size_(count)
         {
             static_assert(std::is_default_constructible_v<value_type>, "value_type must be default constructible.");
             assert(count <= capacity());
-            std::ranges::uninitialized_default_construct(*this);
+            ranges::uninitialized_default_construct(*this);
         }
         constexpr explicit static_vector(size_type count, const value_type& value) : size_(count)
         {
             static_assert(std::is_copy_constructible_v<value_type>, "value_type must be copy constructible.");
             assert(count <= capacity());
-            std::ranges::uninitialized_fill(*this, value);
+            ranges::uninitialized_fill(*this, value);
         }
         template <std::input_iterator InputIter>
         constexpr static_vector(InputIter first, InputIter last)
@@ -85,11 +90,11 @@ namespace dpm
                 "value_type must be constructible from decltype(*first)");
             size_ = std::distance(first, last);
             assert(size_ <= capacity());
-            std::ranges::uninitialized_copy(first, last, begin(), end());
+            ranges::uninitialized_copy(first, last, begin(), end());
         }
         constexpr static_vector(std::initializer_list<value_type> il) : size_(il.size())
         {
-            std::ranges::uninitialized_copy(il, *this);
+            ranges::uninitialized_copy(il, *this);
         }
 
         // 5.3, copy/move assignment:
@@ -106,10 +111,10 @@ namespace dpm
             std::is_nothrow_move_assignable_v<value_type>)
         {
             auto amount = std::min(size_, other.size_);
-            auto [move_end, this_begin] = std::ranges::copy_n(std::make_move_iterator(other.begin()), amount, begin());
-            std::ranges::destroy(this_begin, end());
+            auto [move_end, this_begin] = ranges::copy_n(std::make_move_iterator(other.begin()), amount, begin());
+            ranges::destroy(this_begin, end());
             size_ = other.size_;
-            std::ranges::uninitialized_move(move_end, std::make_move_iterator(other.end()), this_begin, end());
+            ranges::uninitialized_move(move_end, std::make_move_iterator(other.end()), this_begin, end());
             other.size_ = 0;
             return *this;
         }
@@ -119,24 +124,24 @@ namespace dpm
             auto new_size = std::distance(first, last);
             auto min = std::min<ptrdiff_t>(size_, new_size);
 
-            auto [in, out] = std::ranges::copy_n(first, min, begin());
-            auto [_, e] = std::ranges::uninitialized_copy(in, last, out, end());
-            std::ranges::destroy(e, end());
+            auto [in, out] = ranges::copy_n(first, min, begin());
+            auto [_, e] = ranges::uninitialized_copy(in, last, out, end());
+            ranges::destroy(e, end());
             size_ = new_size;
         }
         constexpr void assign(size_type n, const value_type& value)
         {
             auto min = std::min(size_, n);
-            auto fill_end = std::ranges::fill_n(begin(), min, value);
-            auto e = std::ranges::uninitialized_fill_n(fill_end, n - min, value);
+            auto fill_end = ranges::fill_n(begin(), min, value);
+            auto e = ranges::uninitialized_fill_n(fill_end, n - min, value);
             size_ = n;
-            std::ranges::destroy(e, end());
+            ranges::destroy(e, end());
         }
         constexpr void assign(std::initializer_list<value_type> il) { assign(il.begin(), il.end()); }
 
         // 5.4, destruction
         constexpr ~static_vector() noexcept requires trivial_dtor = default;
-        constexpr ~static_vector() { std::ranges::destroy_n(begin(), size_); }
+        constexpr ~static_vector() { ranges::destroy_n(begin(), size_); }
 
         // iterators
         [[nodiscard]] constexpr iterator begin() noexcept { return data(); }
@@ -165,12 +170,12 @@ namespace dpm
             if (sz < size_)
             {
                 const auto amount = size_ - sz;
-                std::ranges::destroy_n(data() + sz, amount);
+                ranges::destroy_n(data() + sz, amount);
             }
             else
             {
                 const auto amount = sz - size_;
-                std::ranges::uninitialized_default_construct_n(end(), amount);
+                ranges::uninitialized_default_construct_n(end(), amount);
             }
             size_ = sz;
         }
@@ -180,12 +185,12 @@ namespace dpm
             if (sz < size_)
             {
                 const auto amount = size_ - sz;
-                std::ranges::destroy_n(data() + sz, amount);
+                ranges::destroy_n(data() + sz, amount);
             }
             else
             {
                 const auto amount = sz - size_;
-                std::ranges::uninitialized_fill_n(end(), amount, value);
+                ranges::uninitialized_fill_n(end(), amount, value);
             }
             size_ = sz;
         }
@@ -214,19 +219,19 @@ namespace dpm
         // 5.7, modifiers:
         constexpr iterator insert(const_iterator position, const value_type& x)
         {
-            assert(size() < capacity());
+            assert(size_ < capacity());
             emplace_back(x);
             return std::rotate(const_cast<iterator>(position), end() - 1, end()) - 1;
         }
         constexpr iterator insert(const_iterator position, value_type&& x)
         {
-            assert(size() < capacity());
+            assert(size_ < capacity());
             emplace_back(std::move(x));
             return std::rotate(const_cast<iterator>(position), end() - 1, end()) - 1;
         }
         constexpr iterator insert(const_iterator position, size_type n, const value_type& x)
         {
-            assert(size() + n <= capacity());
+            assert(size_ + n <= capacity());
             auto old_end = end();
             for (size_t i = 0; i < n; ++i)
             {
@@ -241,8 +246,8 @@ namespace dpm
         {
             auto old_end = end();
             size_ += std::distance(first, last);
-            assert(size() <= capacity());
-            std::ranges::uninitialized_copy(first, last, old_end, end());
+            assert(size_ <= capacity());
+            ranges::uninitialized_copy(first, last, old_end, end());
 
             auto pos = const_cast<iterator>(position);
             std::rotate(pos, old_end, end());
@@ -256,7 +261,7 @@ namespace dpm
         template <class... Args>
         constexpr iterator emplace(const_iterator position, Args&&... args)
         {
-            assert(size() < capacity());
+            assert(size_ < capacity());
             emplace_back(std::forward<Args>(args)...);
             return std::rotate(iterator(position), end() - 1, end()) - 1;
         }
@@ -264,7 +269,7 @@ namespace dpm
         template <class... Args>
         constexpr reference emplace_back(Args&&... args)
         {
-            assert(size() < capacity());
+            assert(size_ < capacity());
             auto* emplaced = std::construct_at(end(), std::forward<Args>(args)...);
             ++size_;
             return *emplaced;
@@ -281,21 +286,21 @@ namespace dpm
         {
             std::destroy_at(position);
             auto pos = const_cast<iterator>(position);
-            std::ranges::rotate(pos, pos + 1, end());
+            ranges::rotate(pos, pos + 1, end());
             --size_;
             return pos;
         }
         constexpr iterator erase(const_iterator first, const_iterator last)
         {
-            auto removed_end = const_cast<iterator>(std::ranges::destroy(first, last));
-            std::ranges::rotate(const_cast<iterator>(first), removed_end, end());
+            auto removed_end = const_cast<iterator>(ranges::destroy(first, last));
+            ranges::rotate(const_cast<iterator>(first), removed_end, end());
             size_ -= std::distance(first, last);
             return removed_end;
         }
 
         constexpr void clear() noexcept
         {
-            std::ranges::destroy(*this);
+            ranges::destroy(*this);
             size_ = 0;
         }
 
@@ -322,11 +327,11 @@ namespace dpm
 
         constexpr bool operator==(const static_vector& other) const noexcept
         {
-            if (size() != other.size())
+            if (size_ != other.size_)
             {
                 return false;
             }
-            return std::ranges::equal(*this, other);
+            return ranges::equal(*this, other);
         }
         constexpr auto operator<=>(const static_vector& other) const noexcept
         {
