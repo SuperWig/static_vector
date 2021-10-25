@@ -18,21 +18,16 @@ namespace dpm
     {
         alignas(T) std::byte storage[sizeof(T) * N];
 
-        T* data()
-        {
-            return reinterpret_cast<T*>(&storage);
-        }
-        const T* data() const
-        {
-            return reinterpret_cast<const T*>(&storage);
-        }
+        T* data() { return reinterpret_cast<T*>(&storage); }
+        const T* data() const { return reinterpret_cast<const T*>(&storage); }
     };
     template <class T, std::size_t Capacity>
     class static_vector
     {
         static_assert(!std::is_const_v<T>, "static_vector can't contain const elements");
 
-        using storage_type = std::conditional_t<std::is_trivial_v<T>, std::array<T, Capacity>, uninitialized_storage<T, Capacity>>;
+        using storage_type =
+            std::conditional_t<std::is_trivial_v<T>, std::array<T, Capacity>, uninitialized_storage<T, Capacity>>;
         storage_type storage_;
         std::size_t size_ = 0;
 
@@ -85,7 +80,8 @@ namespace dpm
         template <std::input_iterator InputIter>
         constexpr static_vector(InputIter first, InputIter last)
         {
-            static_assert(std::is_constructible_v<value_type, decltype(*first)>, "value_type must be constructible from decltype(*first)");
+            static_assert(std::is_constructible_v<value_type, decltype(*first)>,
+                "value_type must be constructible from decltype(*first)");
             size_ = std::distance(first, last);
             assert(size_ <= capacity());
             std::ranges::uninitialized_copy(first, last, begin(), end());
@@ -99,12 +95,14 @@ namespace dpm
         static_vector& operator=(const static_vector& other) requires trivial_copy_assignable = default;
         static_vector& operator=(static_vector&& other) requires trivial_move_assignable = default;
 
-        constexpr static_vector& operator=(const static_vector& other) noexcept(std::is_nothrow_copy_assignable_v<value_type>)
+        constexpr static_vector& operator=(const static_vector& other) noexcept(
+            std::is_nothrow_copy_assignable_v<value_type>)
         {
             assign(other.begin(), other.end());
             return *this;
         }
-        constexpr static_vector& operator=(static_vector&& other) noexcept(std::is_nothrow_move_assignable_v<value_type>)
+        constexpr static_vector& operator=(static_vector&& other) noexcept(
+            std::is_nothrow_move_assignable_v<value_type>)
         {
             auto amount = std::min(size_, other.size_);
             auto [move_end, this_begin] = std::ranges::copy_n(std::make_move_iterator(other.begin()), amount, begin());
@@ -133,85 +131,31 @@ namespace dpm
             size_ = n;
             std::ranges::destroy(e, end());
         }
-        constexpr void assign(std::initializer_list<value_type> il)
-        {
-            assign(il.begin(), il.end());
-        }
+        constexpr void assign(std::initializer_list<value_type> il) { assign(il.begin(), il.end()); }
 
         // 5.4, destruction
         constexpr ~static_vector() noexcept requires trivial_dtor = default;
-        constexpr ~static_vector()
-        {
-            std::ranges::destroy_n(begin(), size_);
-        }
+        constexpr ~static_vector() { std::ranges::destroy_n(begin(), size_); }
 
         // iterators
-        [[nodiscard]] constexpr iterator begin() noexcept
-        {
-            return data();
-        }
-        [[nodiscard]] constexpr const_iterator begin() const noexcept
-        {
-            return data();
-        }
-        [[nodiscard]] constexpr iterator end() noexcept
-        {
-            return data() + size_;
-        }
-        [[nodiscard]] constexpr const_iterator end() const noexcept
-        {
-            return data() + size_;
-        }
-        [[nodiscard]] constexpr reverse_iterator rbegin() noexcept
-        {
-            std::make_reverse_iterator(end());
-        }
-        [[nodiscard]] constexpr const_reverse_iterator rbegin() const noexcept
-        {
-            std::make_reverse_iterator(end());
-        }
-        [[nodiscard]] constexpr reverse_iterator rend() noexcept
-        {
-            std::make_reverse_iterator(begin());
-        }
-        [[nodiscard]] constexpr const_reverse_iterator rend() const noexcept
-        {
-            std::make_reverse_iterator(begin());
-        }
-        [[nodiscard]] constexpr const_iterator cbegin() const noexcept
-        {
-            return begin();
-        }
-        [[nodiscard]] constexpr const_iterator cend() const noexcept
-        {
-            return end();
-        }
-        [[nodiscard]] constexpr const_reverse_iterator crbegin() const noexcept
-        {
-            return rbegin();
-        }
-        [[nodiscard]] constexpr const_reverse_iterator crend() const noexcept
-        {
-            return rend();
-        }
+        [[nodiscard]] constexpr iterator begin() noexcept { return data(); }
+        [[nodiscard]] constexpr const_iterator begin() const noexcept { return data(); }
+        [[nodiscard]] constexpr iterator end() noexcept { return data() + size_; }
+        [[nodiscard]] constexpr const_iterator end() const noexcept { return data() + size_; }
+        [[nodiscard]] constexpr reverse_iterator rbegin() noexcept { std::make_reverse_iterator(end()); }
+        [[nodiscard]] constexpr const_reverse_iterator rbegin() const noexcept { std::make_reverse_iterator(end()); }
+        [[nodiscard]] constexpr reverse_iterator rend() noexcept { std::make_reverse_iterator(begin()); }
+        [[nodiscard]] constexpr const_reverse_iterator rend() const noexcept { std::make_reverse_iterator(begin()); }
+        [[nodiscard]] constexpr const_iterator cbegin() const noexcept { return begin(); }
+        [[nodiscard]] constexpr const_iterator cend() const noexcept { return end(); }
+        [[nodiscard]] constexpr const_reverse_iterator crbegin() const noexcept { return rbegin(); }
+        [[nodiscard]] constexpr const_reverse_iterator crend() const noexcept { return rend(); }
 
         // 5.5, size/capacity:
-        [[nodiscard]] constexpr bool empty() const noexcept
-        {
-            return size_ == 0;
-        }
-        [[nodiscard]] constexpr size_type size() const noexcept
-        {
-            return size_;
-        }
-        [[nodiscard]] static constexpr size_type max_size() noexcept
-        {
-            return Capacity;
-        }
-        [[nodiscard]] static constexpr size_type capacity() noexcept
-        {
-            return Capacity;
-        }
+        [[nodiscard]] constexpr bool empty() const noexcept { return size_ == 0; }
+        [[nodiscard]] constexpr size_type size() const noexcept { return size_; }
+        [[nodiscard]] static constexpr size_type max_size() noexcept { return Capacity; }
+        [[nodiscard]] static constexpr size_type capacity() noexcept { return Capacity; }
         constexpr void resize(size_type sz)
         {
             static_assert(std::is_default_constructible_v<value_type>, "T must be default constuctible");
@@ -257,32 +201,14 @@ namespace dpm
             return data()[n];
         }
 
-        [[nodiscard]] constexpr reference front()
-        {
-            return *begin();
-        }
-        [[nodiscard]] constexpr const_reference front() const
-        {
-            return *begin();
-        }
+        [[nodiscard]] constexpr reference front() { return *begin(); }
+        [[nodiscard]] constexpr const_reference front() const { return *begin(); }
 
-        [[nodiscard]] constexpr reference back()
-        {
-            return *(begin() + size_ - 1);
-        }
-        [[nodiscard]] constexpr const_reference back() const
-        {
-            return *(begin() + size_ - 1);
-        }
+        [[nodiscard]] constexpr reference back() { return *(begin() + size_ - 1); }
+        [[nodiscard]] constexpr const_reference back() const { return *(begin() + size_ - 1); }
 
-        [[nodiscard]] constexpr pointer data() noexcept
-        {
-            return storage_.data();
-        }
-        [[nodiscard]] constexpr const_pointer data() const noexcept
-        {
-            return storage_.data();
-        }
+        [[nodiscard]] constexpr pointer data() noexcept { return storage_.data(); }
+        [[nodiscard]] constexpr const_pointer data() const noexcept { return storage_.data(); }
 
         // 5.7, modifiers:
         constexpr iterator insert(const_iterator position, const value_type& x)
@@ -342,14 +268,8 @@ namespace dpm
             ++size_;
             return *emplaced;
         }
-        constexpr void push_back(const value_type& x)
-        {
-            emplace_back(x);
-        }
-        constexpr void push_back(value_type&& x)
-        {
-            emplace_back(std::move(x));
-        }
+        constexpr void push_back(const value_type& x) { emplace_back(x); }
+        constexpr void push_back(value_type&& x) { emplace_back(std::move(x)); }
 
         constexpr void pop_back()
         {
@@ -378,8 +298,9 @@ namespace dpm
             size_ = 0;
         }
 
-        constexpr void swap(static_vector& other) noexcept(std::is_nothrow_swappable_v<value_type>&& std::is_nothrow_move_constructible_v<value_type>) 
-            requires std::is_move_constructible_v<value_type> && std::is_swappable_v<value_type>
+        constexpr void swap(static_vector& other) noexcept(
+            std::is_nothrow_swappable_v<value_type>&& std::is_nothrow_move_constructible_v<value_type>) requires
+            std::is_move_constructible_v<value_type> && std::is_swappable_v<value_type>
         {
             // Could this be simpler?
             auto [smaller_begin, smaller_end, larger_begin, larger_end] = [&] {

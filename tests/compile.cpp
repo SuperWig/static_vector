@@ -9,6 +9,8 @@
 using trivial_vector = dpm::static_vector<int, 2>;
 using non_trivial_vector = dpm::static_vector<std::string, 2>;
 
+// clang-format off
+
 //static_assert(std::is_trivial_v<trivial_vector>, "trivial_vector isn't trivial.");
 //static_assert(!std::is_trivial_v<non_trivial_vector>, "non_trivial_vector is trivial.");
 
@@ -34,6 +36,7 @@ static_assert(!std::is_trivially_copyable_v<non_trivial_vector>, "non_trivial_ve
 static_assert(std::is_standard_layout_v<trivial_vector>, "trivial_vector isn't standard layout.");
 static_assert(std::is_standard_layout_v<non_trivial_vector>, "trivial_vector isn't standard layout.");
 
-int main()
-{
-}
+
+// clang-format on
+
+int main() {}

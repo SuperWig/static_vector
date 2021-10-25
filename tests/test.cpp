@@ -10,7 +10,7 @@
 
 // static_assert(std::is_empty_v<dpm::static_vector<int, 0>>);
 
-//TODO: replace std::string usage with a custom type.
+// TODO: replace std::string usage with a custom type.
 
 struct my_int
 {
@@ -114,7 +114,7 @@ TEST_CASE("assignment")
     }
     SUBCASE("assign(n, value)")
     {
-        dpm::static_vector<std::string, 3> v1{ "I", "am"};
+        dpm::static_vector<std::string, 3> v1{ "I", "am" };
         v1.assign(3, "Good");
         v1.clear();
         v1.assign(3, "Bad");
@@ -133,7 +133,8 @@ TEST_CASE("size/capacity")
     REQUIRE(sv2.capacity() == 2);
     REQUIRE(sv1.max_size() == sv1.capacity());
 
-    dpm::static_vector<std::string, 3> bob{ "this is a long string 1", "this is a long string 2", "this is a long string 3" };
+    dpm::static_vector<std::string, 3> bob{ "this is a long string 1", "this is a long string 2",
+        "this is a long string 3" };
     bob.resize(1);
     bob.resize(3);
     dpm::static_vector<std::string, 3> bill;
@@ -176,7 +177,7 @@ TEST_CASE("modifiers")
         REQUIRE(test.empty());
         REQUIRE(constructor_count::count == 0);
     }
-    //TODO: actually test these
+    // TODO: actually test these
     SUBCASE("emplace_back")
     {
         dpm::static_vector<std::string, 3> v1;

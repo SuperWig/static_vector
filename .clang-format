@@ -1,7 +1,7 @@
 AccessModifierOffset: -4
 AlignAfterOpenBracket: DontAlign
 AllowShortBlocksOnASingleLine: true
-AllowShortFunctionsOnASingleLine: All
+AlwaysBreakTemplateDeclarations: Yes
 BasedOnStyle: LLVM
 BraceWrapping:
   AfterClass: true
@@ -17,7 +17,7 @@ BraceWrapping:
   SplitEmptyFunction: true
   SplitEmptyRecord: true
 BreakBeforeBraces: Custom
-ColumnLimit: 0
+ColumnLimit: 120
 Cpp11BracedListStyle: false
 FixNamespaceComments: false
 IncludeBlocks:   Regroup
