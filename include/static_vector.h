@@ -56,11 +56,12 @@ namespace dpm
         static_vector(static_vector&& other) requires trivial_move_ctor = default;
 
         // 5.2, non-trivial copy/move construction:
-        constexpr static_vector(const static_vector& other) : size_(other.size_)
+        constexpr static_vector(const static_vector& other) noexcept(std::is_nothrow_constructible_v<value_type>) : size_(other.size_)
         {
             std::ranges::uninitialized_copy(other, *this);
         }
-        constexpr static_vector(static_vector&& other) noexcept : size_(std::exchange(other.size_, 0))
+        constexpr static_vector(static_vector&& other) noexcept(std::is_nothrow_move_constructible_v<value_type>)
+            : size_(std::exchange(other.size_, 0))
         {
             static_assert(std::is_move_constructible_v<value_type>, "value_type must be move constructible.");
             std::ranges::uninitialized_move_n(other.begin(), size_, begin(), end());
@@ -156,6 +157,7 @@ namespace dpm
         [[nodiscard]] constexpr size_type size() const noexcept { return size_; }
         [[nodiscard]] static constexpr size_type max_size() noexcept { return Capacity; }
         [[nodiscard]] static constexpr size_type capacity() noexcept { return Capacity; }
+
         constexpr void resize(size_type sz)
         {
             static_assert(std::is_default_constructible_v<value_type>, "T must be default constuctible");
@@ -189,7 +191,6 @@ namespace dpm
         }
 
         // 5.6, element and data access:
-
         [[nodiscard]] constexpr reference operator[](size_t n) noexcept
         {
             assert(n < size_ && n >= 0);

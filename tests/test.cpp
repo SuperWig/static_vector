@@ -10,13 +10,6 @@
 
 // static_assert(std::is_empty_v<dpm::static_vector<int, 0>>);
 
-// TODO: replace std::string usage with a custom type.
-
-struct my_int
-{
-    int value = 2;
-};
-
 struct constructor_count
 {
     inline static int count = 0;
@@ -26,27 +19,56 @@ struct constructor_count
     ~constructor_count() noexcept { --count; }
 };
 
+struct copy_move_tester
+{
+    int* data = new int(1);
+
+    copy_move_tester() = default;
+    copy_move_tester(int value) : data(new int(value)) {}
+    copy_move_tester(const copy_move_tester& other) : data(new int(*other.data)) {}
+    copy_move_tester(copy_move_tester&& other) : data(std::exchange(other.data, nullptr)) {}
+
+    copy_move_tester& operator=(int value)
+    {
+        *data = value;
+        return *this;
+    }
+    copy_move_tester& operator=(const copy_move_tester& other)
+    {
+        *data = *other.data;
+        return *this;
+    }
+    copy_move_tester& operator=(copy_move_tester&& other)
+    {
+        data = std::exchange(other.data, nullptr);
+        return *this;
+    }
+
+    ~copy_move_tester() { delete data; }
+
+    int value() const { return *data; }
+    const int* addr() const { return data; }
+};
+
 TEST_CASE("constructors/destructors")
 {
-    SUBCASE("static_vector(consd static_vector&)")
+    SUBCASE("static_vector(const static_vector&)")
     {
-        dpm::static_vector<std::string, 5> sv(2);
-        sv[0] = "this is a very long string to bypass SSO.";
-        sv[1] = "this is a very long string to bypass SSO.";
+        dpm::static_vector<copy_move_tester, 5> sv(2);
+        sv[0] = 10;
+        sv[1] = 20;
         auto copy = sv;
-        REQUIRE(copy[0] == sv[0]);
-        REQUIRE(copy[1] == sv[1]);
-        REQUIRE(&copy[0] != &sv[0]);
-        REQUIRE(&copy[1] != &sv[1]);
+        REQUIRE(copy[0].value() == sv[0].value());
+        REQUIRE(copy[1].value() == sv[1].value());
+        REQUIRE(copy[0].addr() != sv[0].addr());
+        REQUIRE(copy[1].addr() != sv[1].addr());
     }
     SUBCASE("static_vector(static_vector&&)")
     {
-        dpm::static_vector<std::string, 2> sv_str(2);
-        sv_str[0] = "this is a very long string to bypass SSO.";
-        const auto str = sv_str[0].data();
-        auto sv_str_moved = std::move(sv_str);
-        const auto str2 = sv_str_moved[0].data();
-        REQUIRE(str == str2);
+        dpm::static_vector<copy_move_tester, 2> sv(2);
+        const auto address = sv[0].addr();
+        auto moved_sv = std::move(sv);
+        REQUIRE(address == moved_sv[0].addr());
     }
     SUBCASE("static_vector(size_type)")
     {
@@ -86,38 +108,38 @@ TEST_CASE("assignment")
 {
     SUBCASE("copy")
     {
-        dpm::static_vector<std::string, 3> v1{ "this is long string 1.", "this is long string 3." };
-        dpm::static_vector<std::string, 3> v2{ "this is long string 2." };
-        const auto* test = v1[0].data();
-        v1 = v2;
-        REQUIRE(v1.size() == 1);
-        REQUIRE(v1[0].data() == test);
-        REQUIRE(v1[0] == "this is long string 2.");
-        REQUIRE(v2[0] == "this is long string 2.");
-        REQUIRE(v1 == v2);
+         dpm::static_vector<copy_move_tester, 3> v1{ 1, 3 };
+         dpm::static_vector<copy_move_tester, 3> v2{ 2 };
+         const auto* test = v1[0].addr();
+         v1 = v2;
+         REQUIRE(v1.size() == 1);
+         REQUIRE(v1[0].addr() == test);
+         REQUIRE(v1[0].value() == 2);
+         REQUIRE(v2[0].value() == 2);
+         //REQUIRE(v1 == v2);
     }
     SUBCASE("move")
     {
-        dpm::static_vector<std::string, 3> v1{ "this is long string 1." };
-        dpm::static_vector<std::string, 3> v2{ "this is long string 2.", "this is long string 3." };
-        const auto* test = v2[0].data();
-        v1 = std::move(v2);
-        REQUIRE(v1.size() == 2);
-        REQUIRE(v1[0].data() == test);
-        REQUIRE(v2.empty());
+         dpm::static_vector<copy_move_tester, 3> v1{ 1 };
+         dpm::static_vector<copy_move_tester, 3> v2{ 2, 3 };
+         const auto* test = v2[0].addr();
+         v1 = std::move(v2);
+         REQUIRE(v1.size() == 2);
+         REQUIRE(v1[0].addr() == test);
+         REQUIRE(v2.empty());
     }
     SUBCASE("assign(first, last)")
     {
-        dpm::static_vector<std::string, 3> v1{ "I", "am", "Dan" };
-        dpm::static_vector<std::string, 3> v2{ "hello" };
+        dpm::static_vector<copy_move_tester, 3> v1{ 1, 2, 3 };
+        dpm::static_vector<copy_move_tester, 3> v2{ 4 };
         v1.assign(v2.begin(), v2.end());
     }
     SUBCASE("assign(n, value)")
     {
-        dpm::static_vector<std::string, 3> v1{ "I", "am" };
-        v1.assign(3, "Good");
+        dpm::static_vector<copy_move_tester, 3> v1{ 1, 2 };
+        v1.assign(3, 10);
         v1.clear();
-        v1.assign(3, "Bad");
+        v1.assign(3, 20);
     }
 }
 
@@ -133,20 +155,19 @@ TEST_CASE("size/capacity")
     REQUIRE(sv2.capacity() == 2);
     REQUIRE(sv1.max_size() == sv1.capacity());
 
-    dpm::static_vector<std::string, 3> bob{ "this is a long string 1", "this is a long string 2",
-        "this is a long string 3" };
+    dpm::static_vector<copy_move_tester, 3> bob{ 1, 2, 3 };
     bob.resize(1);
     bob.resize(3);
-    dpm::static_vector<std::string, 3> bill;
+    dpm::static_vector<copy_move_tester, 3> bill;
     bill.resize(2);
 
     bill.clear();
-    bill.resize(3, "Yo");
+    bill.resize(3, 30);
 
     REQUIRE(bill.size() == 3);
-    REQUIRE(bill[0] == "Yo");
-    REQUIRE(bill[1] == "Yo");
-    REQUIRE(bill[2] == "Yo");
+    REQUIRE(bill[0].value() == 30);
+    REQUIRE(bill[1].value() == 30);
+    REQUIRE(bill[2].value() == 30);
 }
 
 TEST_CASE("access")
@@ -187,74 +208,74 @@ TEST_CASE("modifiers")
     }
     SUBCASE("push_back")
     {
-        dpm::static_vector<std::string, 3> v1;
-        v1.push_back("hello");
+        dpm::static_vector<copy_move_tester, 3> v1;
+        v1.push_back(20);
 
-        std::string world = "world and lets disable SSO.";
-        auto original = world.data();
+        copy_move_tester world = 42;
+        auto original = world.addr();
         v1.push_back(std::move(world));
-        REQUIRE(original == v1[1].data());
+        REQUIRE(original == v1[1].addr());
     }
     SUBCASE("pop_back")
     {
-        dpm::static_vector<std::string, 3> v1;
-        v1.push_back("hello this is a long string.");
+        dpm::static_vector<copy_move_tester, 3> v1;
+        v1.push_back(20);
         v1.pop_back();
-        v1.push_back("hello");
+        v1.push_back(10);
     }
     SUBCASE("swap")
     {
         {
-            dpm::static_vector<std::string, 3> v1{ "this is a test, homes." };
-            dpm::static_vector<std::string, 3> v2{ "Bob is so very cool.", "Bob is the best homie" };
+            dpm::static_vector<copy_move_tester, 3> v1{ 1 };
+            dpm::static_vector<copy_move_tester, 3> v2{ 2, 3 };
 
-            auto v10 = v1[0].data();
-            auto v20 = v2[0].data();
-            auto v21 = v2[1].data();
+            auto v10 = v1[0].value();
+            auto v20 = v2[0].value();
+            auto v21 = v2[1].value();
 
             v1.swap(v2);
             REQUIRE(v1.size() == 2);
             REQUIRE(v2.size() == 1);
 
-            REQUIRE(v1[0] == v20);
-            REQUIRE(v1[1] == v21);
-            REQUIRE(v2[0] == v10);
+            REQUIRE(v1[0].value() == v20);
+            REQUIRE(v1[1].value() == v21);
+            REQUIRE(v2[0].value() == v10);
         }
         {
-            dpm::static_vector<std::string, 3> v1{ "Bob is so very cool.", "Bob is the best homie" };
-            dpm::static_vector<std::string, 3> v2{ "this is a test, homes." };
+            dpm::static_vector<copy_move_tester, 3> v1{ 1, 2 };
+            dpm::static_vector<copy_move_tester, 3> v2{ 3 };
 
-            auto v10 = v1[0].data();
-            auto v11 = v1[1].data();
-            auto v20 = v2[0].data();
+            auto v10 = v1[0].value();
+            auto v11 = v1[1].value();
+            auto v20 = v2[0].value();
 
             v1.swap(v2);
 
             REQUIRE(v1.size() == 1);
             REQUIRE(v2.size() == 2);
 
-            REQUIRE(v1[0] == v20);
-            REQUIRE(v2[0] == v10);
-            REQUIRE(v2[1] == v11);
+            REQUIRE(v1[0].value() == v20);
+            REQUIRE(v2[0].value() == v10);
+            REQUIRE(v2[1].value() == v11);
         }
         {
-            dpm::static_vector<std::string, 3> v1{ "Bob is so very cool.", "Bob is the best homie" };
-            dpm::static_vector<std::string, 3> v2{ "this is a test, homes.", "just a long string" };
+            dpm::static_vector<copy_move_tester, 3> v1{ 1, 3 };
+            dpm::static_vector<copy_move_tester, 3> v2{ 2, 4 };
 
-            auto v10 = v1[0].data();
-            auto v11 = v1[1].data();
-            auto v20 = v2[0].data();
-            auto v21 = v2[1].data();
+            auto v10 = v1[0].value();
+            auto v11 = v1[1].value();
+            auto v20 = v2[0].value();
+            auto v21 = v2[1].value();
 
             v1.swap(v2);
 
             REQUIRE(v1.size() == 2);
             REQUIRE(v2.size() == 2);
 
-            REQUIRE(v1[0] == v20);
-            REQUIRE(v1[1] == v21);
-            REQUIRE(v2[0] == v10);
-            REQUIRE(v2[1] == v11);
+            REQUIRE(v1[0].value() == v20);
+            REQUIRE(v1[1].value() == v21);
+            REQUIRE(v2[0].value() == v10);
+            REQUIRE(v2[1].value() == v11);
         }
     }
     SUBCASE("insert")
@@ -272,8 +293,8 @@ TEST_CASE("modifiers")
             REQUIRE(inserted == &v1[0]);
         }
         {
-            dpm::static_vector<std::string, 5> v1{ "hello", "world" };
-            std::array<std::string, 3> str_arr{ "this", "is", "cool" };
+            dpm::static_vector<copy_move_tester, 5> v1{ 1, 2 };
+            std::array<copy_move_tester, 3> str_arr{ 3, 4, 5 };
             auto inserted = v1.insert(v1.begin() + 1, str_arr.begin(), str_arr.end());
             REQUIRE(v1.size() == 5);
             REQUIRE(inserted == &v1[1]);
@@ -282,17 +303,17 @@ TEST_CASE("modifiers")
     SUBCASE("erase")
     {
         {
-            dpm::static_vector<std::string, 3> vec{ "this", "is", "bob" };
+            dpm::static_vector<copy_move_tester, 3> vec{ 1, 2, 3 };
             vec.erase(vec.begin() + 1);
             REQUIRE(vec.size() == 2);
-            REQUIRE(vec[0] == "this");
-            REQUIRE(vec[1] == "bob");
+            REQUIRE(vec[0].value() == 1);
+            REQUIRE(vec[1].value() == 3);
         }
         {
-            dpm::static_vector<std::string, 3> vec{ "this", "is", "bob" };
+            dpm::static_vector<copy_move_tester, 3> vec{ 1, 2, 3 };
             vec.erase(vec.begin(), vec.begin() + 2);
             REQUIRE(vec.size() == 1);
-            REQUIRE(vec[0] == "bob");
+            REQUIRE(vec[0].value() == 3);
             vec.erase(vec.begin(), vec.begin());
         }
     }
