@@ -1,7 +1,13 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.12)
 project(static_vector LANGUAGES CXX)
 
-option(DPM_BUILD_TESTS "Build the tests" ${PROJECT_IS_TOP_LEVEL})
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+	set(DPM_MASTER_PROJECT ON)
+else()
+	set(DPM_MASTER_PROJECT OFF)
+endif()
+
+option(DPM_BUILD_TESTS "Build the tests" ${DPM_MASTER_PROJECT})
 
 add_library(static_vector INTERFACE)
 add_library(dpm::static_vector ALIAS static_vector)
