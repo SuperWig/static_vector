@@ -12,13 +12,13 @@ using namespace dpm;
 
 // static_assert(std::is_empty_v<static_vector<int, 0>>);
 
-struct constructor_count
+struct object_counter
 {
     inline static int count = 0;
-    constructor_count() noexcept { ++count; }
-    constructor_count(const constructor_count&) noexcept { ++count; }
-    constructor_count(constructor_count&&) noexcept { ++count; }
-    ~constructor_count() noexcept { --count; }
+    object_counter() noexcept { ++count; }
+    object_counter(const object_counter&) noexcept { ++count; }
+    object_counter(object_counter&&) noexcept { ++count; }
+    ~object_counter() noexcept { --count; }
 };
 
 struct copy_move_tester
@@ -100,11 +100,11 @@ TEST_CASE("constructors/destructors")
     }
     SUBCASE("static_vector(size_type)")
     {
-        static_vector<constructor_count, 5> sv1(0);
-        REQUIRE(constructor_count::count == 0);
+        static_vector<object_counter, 5> sv1(0);
+        REQUIRE(object_counter::count == 0);
 
-        static_vector<constructor_count, 5> sv2(3);
-        REQUIRE(constructor_count::count == 3);
+        static_vector<object_counter, 5> sv2(3);
+        REQUIRE(object_counter::count == 3);
     }
     SUBCASE("static_vector(size_type, value_type)")
     {
@@ -128,10 +128,10 @@ TEST_CASE("constructors/destructors")
     SUBCASE("~static_vector()")
     {
         {
-            static_vector<constructor_count, 3> sv1(3);
-            static_vector<constructor_count, 3> sv2(1);
+            static_vector<object_counter, 3> sv1(3);
+            static_vector<object_counter, 3> sv2(1);
         }
-        REQUIRE(constructor_count::count == 0);
+        REQUIRE(object_counter::count == 0);
     }
 }
 
@@ -201,12 +201,12 @@ TEST_CASE("size/capacity")
     REQUIRE(sv2.capacity() == 2);
     REQUIRE(sv1.max_size() == sv1.capacity());
 
-    static_vector<constructor_count, 3> sv3(3);
-    REQUIRE(constructor_count::count == 3);
+    static_vector<object_counter, 3> sv3(3);
+    REQUIRE(object_counter::count == 3);
     sv3.resize(2);
-    REQUIRE(constructor_count::count == 2);
+    REQUIRE(object_counter::count == 2);
     sv3.resize(0);
-    REQUIRE(constructor_count::count == 0);
+    REQUIRE(object_counter::count == 0);
 
 }
 
@@ -231,12 +231,12 @@ TEST_CASE("modifiers")
 {
     SUBCASE("clear")
     {
-        static_vector<constructor_count, 3> sv(3);
+        static_vector<object_counter, 3> sv(3);
         REQUIRE(!sv.empty());
-        REQUIRE(constructor_count::count > 0);
+        REQUIRE(object_counter::count > 0);
         sv.clear();
         REQUIRE(sv.empty());
-        REQUIRE(constructor_count::count == 0);
+        REQUIRE(object_counter::count == 0);
     }
     SUBCASE("emplace_back")
     {
