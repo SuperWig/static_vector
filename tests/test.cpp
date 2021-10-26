@@ -52,14 +52,37 @@ struct copy_move_tester
     const int* addr() const { return data; }
 };
 
+struct copy_only
+{
+    copy_only() = default;
+    copy_only(const copy_only&) = default;
+    copy_only(copy_only&&) = delete;
+};
+
+struct move_only
+{
+    move_only() = default;
+    move_only(const move_only&) = delete;
+    move_only(move_only&&) = default;
+};
+
 TEST_CASE("constructors/destructors")
 {
+    SUBCASE("static_vector()")
+    {
+        static_vector<copy_move_tester, 5> sv1;
+        static_vector<int, 5> sv2;
+
+        REQUIRE(sv1.empty());
+        REQUIRE(sv2.empty());
+    }
     SUBCASE("static_vector(const static_vector&)")
     {
         static_vector<copy_move_tester, 5> sv(2);
         sv[0] = 10;
         sv[1] = 20;
         auto copy = sv;
+
         REQUIRE(copy[0].value() == sv[0].value());
         REQUIRE(copy[1].value() == sv[1].value());
         REQUIRE(copy[0].addr() != sv[0].addr());
@@ -68,20 +91,25 @@ TEST_CASE("constructors/destructors")
     SUBCASE("static_vector(static_vector&&)")
     {
         static_vector<copy_move_tester, 2> sv(2);
-        const auto address = sv[0].addr();
+        const auto sv_0 = sv[0].addr();
+        const auto sv_1 = sv[1].addr();
         auto moved_sv = std::move(sv);
-        REQUIRE(address == moved_sv[0].addr());
+
+        REQUIRE(sv_0 == moved_sv[0].addr());
+        REQUIRE(sv_1 == moved_sv[1].addr());
     }
     SUBCASE("static_vector(size_type)")
     {
         static_vector<constructor_count, 5> sv1(0);
         REQUIRE(constructor_count::count == 0);
+
         static_vector<constructor_count, 5> sv2(3);
         REQUIRE(constructor_count::count == 3);
     }
     SUBCASE("static_vector(size_type, value_type)")
     {
         static_vector<int, 3> sv(3, 2);
+
         REQUIRE(sv.size() == 3);
         REQUIRE(sv[0] == 2);
         REQUIRE(sv[1] == 2);
@@ -92,6 +120,7 @@ TEST_CASE("constructors/destructors")
         std::array<int, 3> test{ 1, 2, 3 };
         static_vector<int, 3> sv(test.begin(), test.end());
 
+        REQUIRE(sv.size() == 3);
         REQUIRE(sv[0] == 1);
         REQUIRE(sv[1] == 2);
         REQUIRE(sv[2] == 3);
@@ -114,11 +143,12 @@ TEST_CASE("assignment")
          static_vector<copy_move_tester, 3> sv2{ 2 };
          const auto* sv1_0 = sv1[0].addr();
          sv1 = sv2;
+         
          REQUIRE(sv1.size() == 1);
+         REQUIRE(sv2.size() == 1);
          REQUIRE(sv1[0].addr() == sv1_0);
          REQUIRE(sv1[0].value() == 2);
          REQUIRE(sv2[0].value() == 2);
-         //REQUIRE(v1 == v2);
     }
     SUBCASE("move")
     {
@@ -126,7 +156,9 @@ TEST_CASE("assignment")
          static_vector<copy_move_tester, 3> sv2{ 2, 3 };
          const auto* sv2_0 = sv2[0].addr();
          sv1 = std::move(sv2);
+        
          REQUIRE(sv1.size() == 2);
+         REQUIRE(sv2.size() == 0);
          REQUIRE(sv1[0].addr() == sv2_0);
          REQUIRE(sv2.empty());
     }
@@ -135,13 +167,25 @@ TEST_CASE("assignment")
         static_vector<copy_move_tester, 3> sv1{ 1, 2, 3 };
         static_vector<copy_move_tester, 3> sv2{ 4 };
         sv1.assign(sv2.begin(), sv2.end());
+        
+        REQUIRE(sv1.size() == 1);
+        REQUIRE(sv2.size() == 1);
+        REQUIRE(sv1[0].value() == sv2[0].value());
     }
     SUBCASE("assign(n, value)")
     {
-        static_vector<copy_move_tester, 3> sv1{ 1, 2 };
-        sv1.assign(3, 10);
-        sv1.clear();
-        sv1.assign(3, 20);
+        static_vector<copy_move_tester, 3> sv{ 1, 2 };
+        auto sv_0 = sv[0].addr();
+        auto sv_1 = sv[1].addr();
+
+        sv.assign(3, 10);
+
+        REQUIRE(sv.size() == 3);
+        REQUIRE(sv[0].addr() == sv_0);
+        REQUIRE(sv[1].addr() == sv_1);
+        REQUIRE(sv[0].value() == 10);
+        REQUIRE(sv[1].value() == 10);
+        REQUIRE(sv[2].value() == 10);
     }
 }
 
@@ -157,19 +201,13 @@ TEST_CASE("size/capacity")
     REQUIRE(sv2.capacity() == 2);
     REQUIRE(sv1.max_size() == sv1.capacity());
 
-    static_vector<copy_move_tester, 3> sv3{ 1, 2, 3 };
-    sv3.resize(1);
-    sv3.resize(3);
-    static_vector<copy_move_tester, 3> sv4;
-    sv4.resize(2);
+    static_vector<constructor_count, 3> sv3(3);
+    REQUIRE(constructor_count::count == 3);
+    sv3.resize(2);
+    REQUIRE(constructor_count::count == 2);
+    sv3.resize(0);
+    REQUIRE(constructor_count::count == 0);
 
-    sv4.clear();
-    sv4.resize(3, 30);
-
-    REQUIRE(sv4.size() == 3);
-    REQUIRE(sv4[0].value() == 30);
-    REQUIRE(sv4[1].value() == 30);
-    REQUIRE(sv4[2].value() == 30);
 }
 
 TEST_CASE("access")
@@ -200,13 +238,14 @@ TEST_CASE("modifiers")
         REQUIRE(sv.empty());
         REQUIRE(constructor_count::count == 0);
     }
-    // TODO: actually test these
     SUBCASE("emplace_back")
     {
         static_vector<std::string, 3> sv;
-        sv.emplace_back("hello");
-        sv.emplace_back("world");
-        sv.emplace_back(3, 'c');
+        decltype(auto) emplaced = sv.emplace_back("hello");
+
+        REQUIRE(std::is_same_v<decltype(emplaced), std::string&>);
+        REQUIRE(emplaced == "hello");
+        REQUIRE(sv.size() == 1);
     }
     SUBCASE("push_back")
     {
@@ -220,10 +259,15 @@ TEST_CASE("modifiers")
     }
     SUBCASE("pop_back")
     {
-        static_vector<copy_move_tester, 3> v1;
-        v1.push_back(20);
-        v1.pop_back();
-        v1.push_back(10);
+        static_vector<int, 3> sv;
+        sv.push_back(10);
+        sv.push_back(20);
+        REQUIRE(sv.size() == 2);
+        REQUIRE(sv.back() == 20);
+        sv.pop_back();
+        REQUIRE(sv.size() == 1);
+        REQUIRE(sv.back() == 10);
+
     }
     SUBCASE("swap")
     {

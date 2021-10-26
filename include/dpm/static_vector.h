@@ -64,6 +64,7 @@ namespace dpm
         constexpr static_vector(const static_vector& other) noexcept(std::is_nothrow_constructible_v<value_type>)
             : size_(other.size_)
         {
+            static_assert(std::is_copy_constructible_v<value_type>, "value_type must be copy constructible.");
             ranges::uninitialized_copy(other, *this);
         }
         constexpr static_vector(static_vector&& other) noexcept(std::is_nothrow_move_constructible_v<value_type>)
@@ -95,6 +96,7 @@ namespace dpm
         }
         constexpr static_vector(std::initializer_list<value_type> il) : size_(il.size())
         {
+            assert(il.size() <= capacity());
             ranges::uninitialized_copy(il, *this);
         }
 
@@ -126,17 +128,17 @@ namespace dpm
             auto min = std::min<ptrdiff_t>(size_, new_size);
 
             auto [in, out] = ranges::copy_n(first, min, begin());
-            auto [_, e] = ranges::uninitialized_copy(in, last, out, end());
-            ranges::destroy(e, end());
+            auto [_, new_end] = ranges::uninitialized_copy(in, last, out, end());
+            ranges::destroy(new_end, end());
             size_ = new_size;
         }
         constexpr void assign(size_type n, const value_type& value)
         {
             auto min = std::min(size_, n);
             auto fill_end = ranges::fill_n(begin(), min, value);
-            auto e = ranges::uninitialized_fill_n(fill_end, n - min, value);
+            auto new_end = ranges::uninitialized_fill_n(fill_end, n - min, value);
             size_ = n;
-            ranges::destroy(e, end());
+            ranges::destroy(new_end, end());
         }
         constexpr void assign(std::initializer_list<value_type> il) { assign(il.begin(), il.end()); }
 
