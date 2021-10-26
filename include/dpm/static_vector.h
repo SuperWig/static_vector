@@ -116,8 +116,10 @@ namespace dpm
             auto amount = std::min(size_, other.size_);
             auto [move_end, this_begin] = ranges::copy_n(std::make_move_iterator(other.begin()), amount, begin());
             ranges::destroy(this_begin, end());
+            
             size_ = other.size_;
             ranges::uninitialized_move(move_end, std::make_move_iterator(other.end()), this_begin, end());
+            ranges::destroy(other);
             other.size_ = 0;
             return *this;
         }

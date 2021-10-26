@@ -19,6 +19,9 @@ struct object_counter
     object_counter(const object_counter&) noexcept { ++count; }
     object_counter(object_counter&&) noexcept { ++count; }
     ~object_counter() noexcept { --count; }
+
+    object_counter& operator=(const object_counter&) noexcept { return *this; }
+    object_counter& operator=(object_counter&&) noexcept { return *this; }
 };
 
 struct copy_move_tester
@@ -139,35 +142,59 @@ TEST_CASE("assignment")
 {
     SUBCASE("copy")
     {
-         static_vector<copy_move_tester, 3> sv1{ 1, 3 };
-         static_vector<copy_move_tester, 3> sv2{ 2 };
-         const auto* sv1_0 = sv1[0].addr();
-         sv1 = sv2;
-         
-         REQUIRE(sv1.size() == 1);
-         REQUIRE(sv2.size() == 1);
-         REQUIRE(sv1[0].addr() == sv1_0);
-         REQUIRE(sv1[0].value() == 2);
-         REQUIRE(sv2[0].value() == 2);
+        static_vector<copy_move_tester, 3> sv1{ 1, 3 };
+        static_vector<copy_move_tester, 3> sv2{ 2 };
+        const auto* sv1_0 = sv1[0].addr();
+        sv1 = sv2;
+
+        REQUIRE(sv1.size() == 1);
+        REQUIRE(sv2.size() == 1);
+        REQUIRE(sv1[0].addr() == sv1_0);
+        REQUIRE(sv1[0].value() == 2);
+        REQUIRE(sv2[0].value() == 2);
+
+        {
+            static_vector<object_counter, 3> sv3{ {}, {}, {} };
+            static_vector<object_counter, 3> sv4{ {} };
+
+            REQUIRE(object_counter::count == 4);
+
+            sv3 = sv4;
+
+            REQUIRE(object_counter::count == 2);
+        }
+        REQUIRE(object_counter::count == 0);
     }
     SUBCASE("move")
     {
-         static_vector<copy_move_tester, 3> sv1{ 1 };
-         static_vector<copy_move_tester, 3> sv2{ 2, 3 };
-         const auto* sv2_0 = sv2[0].addr();
-         sv1 = std::move(sv2);
-        
-         REQUIRE(sv1.size() == 2);
-         REQUIRE(sv2.size() == 0);
-         REQUIRE(sv1[0].addr() == sv2_0);
-         REQUIRE(sv2.empty());
+        static_vector<copy_move_tester, 3> sv1{ 1 };
+        static_vector<copy_move_tester, 3> sv2{ 2, 3 };
+        const auto* sv2_0 = sv2[0].addr();
+        sv1 = std::move(sv2);
+
+        REQUIRE(sv1.size() == 2);
+        REQUIRE(sv2.size() == 0);
+        REQUIRE(sv1[0].addr() == sv2_0);
+        REQUIRE(sv2.empty());
+
+        {
+            static_vector<object_counter, 3> sv3{ {}, {}, {} };
+            static_vector<object_counter, 3> sv4{ {} };
+
+            REQUIRE(object_counter::count == 4);
+
+            sv3 = std::move(sv4);
+
+            REQUIRE(object_counter::count == 1);
+        }
+        REQUIRE(object_counter::count == 0);
     }
     SUBCASE("assign(first, last)")
     {
         static_vector<copy_move_tester, 3> sv1{ 1, 2, 3 };
         static_vector<copy_move_tester, 3> sv2{ 4 };
         sv1.assign(sv2.begin(), sv2.end());
-        
+
         REQUIRE(sv1.size() == 1);
         REQUIRE(sv2.size() == 1);
         REQUIRE(sv1[0].value() == sv2[0].value());
@@ -207,7 +234,6 @@ TEST_CASE("size/capacity")
     REQUIRE(object_counter::count == 2);
     sv3.resize(0);
     REQUIRE(object_counter::count == 0);
-
 }
 
 TEST_CASE("access")
@@ -267,7 +293,6 @@ TEST_CASE("modifiers")
         sv.pop_back();
         REQUIRE(sv.size() == 1);
         REQUIRE(sv.back() == 10);
-
     }
     SUBCASE("swap")
     {
@@ -295,7 +320,7 @@ TEST_CASE("modifiers")
             auto sv1_1 = sv1[1].value();
             auto sv2_0 = sv2[0].value();
 
-            swap(sv1,sv2);
+            swap(sv1, sv2);
 
             REQUIRE(sv1.size() == 1);
             REQUIRE(sv2.size() == 2);
