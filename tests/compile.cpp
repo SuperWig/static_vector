@@ -1,10 +1,10 @@
 // Copyright (c) Daniel Marshall.
 // SPDX-License-Identifier: BSL-1.0
 
-#include "static_vector.h"
-
 #include <string>
 #include <type_traits>
+
+#include <dpm/static_vector.h>
 
 using trivial_vector = dpm::static_vector<int, 2>;
 using non_trivial_vector = dpm::static_vector<std::string, 2>;

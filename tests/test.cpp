@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <doctest/doctest.h>
-#include <static_vector.h>
+#include <dpm/static_vector.h>
 
 // static_assert(std::is_empty_v<dpm::static_vector<int, 0>>);
 
