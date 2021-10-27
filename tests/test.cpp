@@ -3,7 +3,6 @@
 
 #include <array>
 #include <string>
-#include <vector>
 
 #include <doctest/doctest.h>
 #include <dpm/static_vector.h>
@@ -405,7 +404,7 @@ TEST_CASE("comparisons")
         CHECK(sv1 != sv4);
         CHECK(sv1 != sv5);
     }
-    SUBCASE("relational") 
+    SUBCASE("relational")
     {
         static_vector<int, 5> sv1{ 1, 2, 3, 4, 5 };
         static_vector<int, 5> sv2{ 5, 4 };

@@ -4,7 +4,6 @@
 #pragma once
 
 #include <algorithm>
-#include <array>
 #include <cassert>
 #include <compare>
 #include <memory>
@@ -26,14 +25,13 @@ namespace dpm
         T* data() { return reinterpret_cast<T*>(&storage); }
         const T* data() const { return reinterpret_cast<const T*>(&storage); }
     };
+
     template <class T, std::size_t Capacity>
     class static_vector
     {
-        static_assert(!std::is_const_v<T>, "static_vector can't contain const elements");
+        static_assert(!std::is_const_v<T>, "static_vector can't contain const elements.");
 
-        using storage_type =
-            std::conditional_t<std::is_trivial_v<T>, std::array<T, Capacity>, uninitialized_storage<T, Capacity>>;
-        storage_type storage_;
+        uninitialized_storage<T, Capacity> storage_;
         std::size_t size_ = 0;
 
         constexpr static bool trivial_copy_ctor = std::is_trivially_copy_constructible_v<T>;
@@ -116,7 +114,7 @@ namespace dpm
             auto amount = std::min(size_, other.size_);
             auto [move_end, this_begin] = ranges::copy_n(std::make_move_iterator(other.begin()), amount, begin());
             ranges::destroy(this_begin, end());
-            
+
             size_ = other.size_;
             ranges::uninitialized_move(move_end, std::make_move_iterator(other.end()), this_begin, end());
             ranges::destroy(other);
@@ -330,7 +328,7 @@ namespace dpm
             std::swap(size_, other.size_);
         }
 
-        constexpr bool operator==(const static_vector& other) const noexcept
+        [[nodiscard]] constexpr bool operator==(const static_vector& other) const noexcept
         {
             if (size_ != other.size_)
             {
@@ -338,7 +336,7 @@ namespace dpm
             }
             return ranges::equal(*this, other);
         }
-        constexpr auto operator<=>(const static_vector& other) const noexcept
+        [[nodiscard]] constexpr auto operator<=>(const static_vector& other) const noexcept
         {
             return std::lexicographical_compare_three_way(begin(), end(), other.begin(), other.end());
         }
