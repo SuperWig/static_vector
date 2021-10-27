@@ -390,6 +390,34 @@ TEST_CASE("modifiers")
     }
 }
 
+TEST_CASE("comparisons")
+{
+    SUBCASE("equality")
+    {
+        static_vector<int, 5> sv1{ 1, 2, 3, 4, 5 };
+        static_vector<int, 5> sv2{ 1, 2, 3, 4, 5 };
+        static_vector<int, 5> sv3{ 2, 2, 3, 4, 5 };
+        static_vector<int, 5> sv4{ 1, 2, 3, 4, 6 };
+        static_vector<int, 5> sv5{ 1, 2, 3, 4 };
+
+        CHECK(sv1 == sv2);
+        CHECK(sv1 != sv3);
+        CHECK(sv1 != sv4);
+        CHECK(sv1 != sv5);
+    }
+    SUBCASE("relational") 
+    {
+        static_vector<int, 5> sv1{ 1, 2, 3, 4, 5 };
+        static_vector<int, 5> sv2{ 5, 4 };
+        static_vector<int, 5> sv3{ 1, 2, 4, 4, 5 };
+        static_vector<int, 5> sv4{ 0, 1 };
+
+        CHECK(sv1 < sv2);
+        CHECK(sv1 < sv3);
+        CHECK(sv1 > sv4);
+    }
+}
+
 TEST_CASE("ranges")
 {
     SUBCASE("range-based for loop")
