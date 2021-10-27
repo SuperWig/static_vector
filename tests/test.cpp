@@ -76,8 +76,8 @@ TEST_CASE("constructors/destructors")
         static_vector<copy_move_tester, 5> sv1;
         static_vector<int, 5> sv2;
 
-        REQUIRE(sv1.empty());
-        REQUIRE(sv2.empty());
+        CHECK(sv1.empty());
+        CHECK(sv2.empty());
     }
     SUBCASE("static_vector(const static_vector&)")
     {
@@ -86,10 +86,10 @@ TEST_CASE("constructors/destructors")
         sv[1] = 20;
         auto copy = sv;
 
-        REQUIRE(copy[0].value() == sv[0].value());
-        REQUIRE(copy[1].value() == sv[1].value());
-        REQUIRE(copy[0].addr() != sv[0].addr());
-        REQUIRE(copy[1].addr() != sv[1].addr());
+        CHECK(copy[0].value() == sv[0].value());
+        CHECK(copy[1].value() == sv[1].value());
+        CHECK(copy[0].addr() != sv[0].addr());
+        CHECK(copy[1].addr() != sv[1].addr());
     }
     SUBCASE("static_vector(static_vector&&)")
     {
@@ -98,35 +98,35 @@ TEST_CASE("constructors/destructors")
         const auto sv_1 = sv[1].addr();
         auto moved_sv = std::move(sv);
 
-        REQUIRE(sv_0 == moved_sv[0].addr());
-        REQUIRE(sv_1 == moved_sv[1].addr());
+        CHECK(sv_0 == moved_sv[0].addr());
+        CHECK(sv_1 == moved_sv[1].addr());
     }
     SUBCASE("static_vector(size_type)")
     {
         static_vector<object_counter, 5> sv1(0);
-        REQUIRE(object_counter::count == 0);
+        CHECK(object_counter::count == 0);
 
         static_vector<object_counter, 5> sv2(3);
-        REQUIRE(object_counter::count == 3);
+        CHECK(object_counter::count == 3);
     }
     SUBCASE("static_vector(size_type, value_type)")
     {
         static_vector<int, 3> sv(3, 2);
 
-        REQUIRE(sv.size() == 3);
-        REQUIRE(sv[0] == 2);
-        REQUIRE(sv[1] == 2);
-        REQUIRE(sv[2] == 2);
+        CHECK(sv.size() == 3);
+        CHECK(sv[0] == 2);
+        CHECK(sv[1] == 2);
+        CHECK(sv[2] == 2);
     }
     SUBCASE("static_vector(InputIter, InputIter)")
     {
         std::array<int, 3> test{ 1, 2, 3 };
         static_vector<int, 3> sv(test.begin(), test.end());
 
-        REQUIRE(sv.size() == 3);
-        REQUIRE(sv[0] == 1);
-        REQUIRE(sv[1] == 2);
-        REQUIRE(sv[2] == 3);
+        CHECK(sv.size() == 3);
+        CHECK(sv[0] == 1);
+        CHECK(sv[1] == 2);
+        CHECK(sv[2] == 3);
     }
     SUBCASE("~static_vector()")
     {
@@ -134,7 +134,7 @@ TEST_CASE("constructors/destructors")
             static_vector<object_counter, 3> sv1(3);
             static_vector<object_counter, 3> sv2(1);
         }
-        REQUIRE(object_counter::count == 0);
+        CHECK(object_counter::count == 0);
     }
 }
 
@@ -147,23 +147,23 @@ TEST_CASE("assignment")
         const auto* sv1_0 = sv1[0].addr();
         sv1 = sv2;
 
-        REQUIRE(sv1.size() == 1);
-        REQUIRE(sv2.size() == 1);
-        REQUIRE(sv1[0].addr() == sv1_0);
-        REQUIRE(sv1[0].value() == 2);
-        REQUIRE(sv2[0].value() == 2);
+        CHECK(sv1.size() == 1);
+        CHECK(sv2.size() == 1);
+        CHECK(sv1[0].addr() == sv1_0);
+        CHECK(sv1[0].value() == 2);
+        CHECK(sv2[0].value() == 2);
 
         {
             static_vector<object_counter, 3> sv3{ {}, {}, {} };
             static_vector<object_counter, 3> sv4{ {} };
 
-            REQUIRE(object_counter::count == 4);
+            CHECK(object_counter::count == 4);
 
             sv3 = sv4;
 
-            REQUIRE(object_counter::count == 2);
+            CHECK(object_counter::count == 2);
         }
-        REQUIRE(object_counter::count == 0);
+        CHECK(object_counter::count == 0);
     }
     SUBCASE("move")
     {
@@ -172,22 +172,22 @@ TEST_CASE("assignment")
         const auto* sv2_0 = sv2[0].addr();
         sv1 = std::move(sv2);
 
-        REQUIRE(sv1.size() == 2);
-        REQUIRE(sv2.size() == 0);
-        REQUIRE(sv1[0].addr() == sv2_0);
-        REQUIRE(sv2.empty());
+        CHECK(sv1.size() == 2);
+        CHECK(sv2.size() == 0);
+        CHECK(sv1[0].addr() == sv2_0);
+        CHECK(sv2.empty());
 
         {
             static_vector<object_counter, 3> sv3{ {}, {}, {} };
             static_vector<object_counter, 3> sv4{ {} };
 
-            REQUIRE(object_counter::count == 4);
+            CHECK(object_counter::count == 4);
 
             sv3 = std::move(sv4);
 
-            REQUIRE(object_counter::count == 1);
+            CHECK(object_counter::count == 1);
         }
-        REQUIRE(object_counter::count == 0);
+        CHECK(object_counter::count == 0);
     }
     SUBCASE("assign(first, last)")
     {
@@ -195,9 +195,9 @@ TEST_CASE("assignment")
         static_vector<copy_move_tester, 3> sv2{ 4 };
         sv1.assign(sv2.begin(), sv2.end());
 
-        REQUIRE(sv1.size() == 1);
-        REQUIRE(sv2.size() == 1);
-        REQUIRE(sv1[0].value() == sv2[0].value());
+        CHECK(sv1.size() == 1);
+        CHECK(sv2.size() == 1);
+        CHECK(sv1[0].value() == sv2[0].value());
     }
     SUBCASE("assign(n, value)")
     {
@@ -207,12 +207,12 @@ TEST_CASE("assignment")
 
         sv.assign(3, 10);
 
-        REQUIRE(sv.size() == 3);
-        REQUIRE(sv[0].addr() == sv_0);
-        REQUIRE(sv[1].addr() == sv_1);
-        REQUIRE(sv[0].value() == 10);
-        REQUIRE(sv[1].value() == 10);
-        REQUIRE(sv[2].value() == 10);
+        CHECK(sv.size() == 3);
+        CHECK(sv[0].addr() == sv_0);
+        CHECK(sv[1].addr() == sv_1);
+        CHECK(sv[0].value() == 10);
+        CHECK(sv[1].value() == 10);
+        CHECK(sv[2].value() == 10);
     }
 }
 
@@ -220,37 +220,37 @@ TEST_CASE("size/capacity")
 {
     static_vector<int, 2> sv1;
     static_vector<int, 2> sv2(2);
-    REQUIRE(sv1.size() == 0);
-    REQUIRE(sv2.size() == 2);
-    REQUIRE(sv1.empty());
-    REQUIRE(!sv2.empty());
-    REQUIRE(sv1.capacity() == 2);
-    REQUIRE(sv2.capacity() == 2);
-    REQUIRE(sv1.max_size() == sv1.capacity());
+    CHECK(sv1.size() == 0);
+    CHECK(sv2.size() == 2);
+    CHECK(sv1.empty());
+    CHECK(!sv2.empty());
+    CHECK(sv1.capacity() == 2);
+    CHECK(sv2.capacity() == 2);
+    CHECK(sv1.max_size() == sv1.capacity());
 
     static_vector<object_counter, 3> sv3(3);
-    REQUIRE(object_counter::count == 3);
+    CHECK(object_counter::count == 3);
     sv3.resize(2);
-    REQUIRE(object_counter::count == 2);
+    CHECK(object_counter::count == 2);
     sv3.resize(0);
-    REQUIRE(object_counter::count == 0);
+    CHECK(object_counter::count == 0);
 }
 
 TEST_CASE("access")
 {
     static_vector<int, 3> sv{ 1, 2, 3 };
-    REQUIRE(sv.front() == 1);
-    REQUIRE(std::is_same_v<decltype(sv.front()), int&>);
+    CHECK(sv.front() == 1);
+    CHECK(std::is_same_v<decltype(sv.front()), int&>);
 
-    REQUIRE(sv.back() == 3);
-    REQUIRE(std::is_same_v<decltype(sv.back()), int&>);
+    CHECK(sv.back() == 3);
+    CHECK(std::is_same_v<decltype(sv.back()), int&>);
 
     const static_vector<int, 3> const_sv{ 1, 2, 3 };
-    REQUIRE(const_sv.front() == 1);
-    REQUIRE(std::is_same_v<decltype(const_sv.front()), const int&>);
+    CHECK(const_sv.front() == 1);
+    CHECK(std::is_same_v<decltype(const_sv.front()), const int&>);
 
-    REQUIRE(const_sv.back() == 3);
-    REQUIRE(std::is_same_v<decltype(const_sv.back()), const int&>);
+    CHECK(const_sv.back() == 3);
+    CHECK(std::is_same_v<decltype(const_sv.back()), const int&>);
 }
 
 TEST_CASE("modifiers")
@@ -258,20 +258,20 @@ TEST_CASE("modifiers")
     SUBCASE("clear")
     {
         static_vector<object_counter, 3> sv(3);
-        REQUIRE(!sv.empty());
-        REQUIRE(object_counter::count > 0);
+        CHECK(!sv.empty());
+        CHECK(object_counter::count > 0);
         sv.clear();
-        REQUIRE(sv.empty());
-        REQUIRE(object_counter::count == 0);
+        CHECK(sv.empty());
+        CHECK(object_counter::count == 0);
     }
     SUBCASE("emplace_back")
     {
         static_vector<std::string, 3> sv;
         decltype(auto) emplaced = sv.emplace_back("hello");
 
-        REQUIRE(std::is_same_v<decltype(emplaced), std::string&>);
-        REQUIRE(emplaced == "hello");
-        REQUIRE(sv.size() == 1);
+        CHECK(std::is_same_v<decltype(emplaced), std::string&>);
+        CHECK(emplaced == "hello");
+        CHECK(sv.size() == 1);
     }
     SUBCASE("push_back")
     {
@@ -281,18 +281,18 @@ TEST_CASE("modifiers")
         copy_move_tester value = 42;
         auto original = value.addr();
         sv.push_back(std::move(value));
-        REQUIRE(original == sv[1].addr());
+        CHECK(original == sv[1].addr());
     }
     SUBCASE("pop_back")
     {
         static_vector<int, 3> sv;
         sv.push_back(10);
         sv.push_back(20);
-        REQUIRE(sv.size() == 2);
-        REQUIRE(sv.back() == 20);
+        CHECK(sv.size() == 2);
+        CHECK(sv.back() == 20);
         sv.pop_back();
-        REQUIRE(sv.size() == 1);
-        REQUIRE(sv.back() == 10);
+        CHECK(sv.size() == 1);
+        CHECK(sv.back() == 10);
     }
     SUBCASE("swap")
     {
@@ -305,12 +305,12 @@ TEST_CASE("modifiers")
             auto sv2_1 = sv2[1].value();
 
             sv1.swap(sv2);
-            REQUIRE(sv1.size() == 2);
-            REQUIRE(sv2.size() == 1);
+            CHECK(sv1.size() == 2);
+            CHECK(sv2.size() == 1);
 
-            REQUIRE(sv1[0].value() == sv2_0);
-            REQUIRE(sv1[1].value() == sv2_1);
-            REQUIRE(sv2[0].value() == sv1_0);
+            CHECK(sv1[0].value() == sv2_0);
+            CHECK(sv1[1].value() == sv2_1);
+            CHECK(sv2[0].value() == sv1_0);
         }
         {
             static_vector<copy_move_tester, 3> sv1{ 1, 2 };
@@ -322,12 +322,12 @@ TEST_CASE("modifiers")
 
             swap(sv1, sv2);
 
-            REQUIRE(sv1.size() == 1);
-            REQUIRE(sv2.size() == 2);
+            CHECK(sv1.size() == 1);
+            CHECK(sv2.size() == 2);
 
-            REQUIRE(sv1[0].value() == sv2_0);
-            REQUIRE(sv2[0].value() == sv1_0);
-            REQUIRE(sv2[1].value() == sv1_1);
+            CHECK(sv1[0].value() == sv2_0);
+            CHECK(sv2[0].value() == sv1_0);
+            CHECK(sv2[1].value() == sv1_1);
         }
         {
             static_vector<copy_move_tester, 3> sv1{ 1, 3 };
@@ -338,15 +338,15 @@ TEST_CASE("modifiers")
             auto sv2_0 = sv2[0].value();
             auto sv2_1 = sv2[1].value();
 
-            sv1.swap(sv2);
+            std::ranges::swap(sv1, sv2);
 
-            REQUIRE(sv1.size() == 2);
-            REQUIRE(sv2.size() == 2);
+            CHECK(sv1.size() == 2);
+            CHECK(sv2.size() == 2);
 
-            REQUIRE(sv1[0].value() == sv2_0);
-            REQUIRE(sv1[1].value() == sv2_1);
-            REQUIRE(sv2[0].value() == sv1_0);
-            REQUIRE(sv2[1].value() == sv1_1);
+            CHECK(sv1[0].value() == sv2_0);
+            CHECK(sv1[1].value() == sv2_1);
+            CHECK(sv2[0].value() == sv1_0);
+            CHECK(sv2[1].value() == sv1_1);
         }
     }
     SUBCASE("insert")
@@ -354,21 +354,21 @@ TEST_CASE("modifiers")
         {
             static_vector<int, 5> sv{ 1, 2, 3 };
             auto inserted = sv.insert(sv.begin() + 1, 5);
-            REQUIRE(sv.size() == 4);
-            REQUIRE(*inserted == 5);
+            CHECK(sv.size() == 4);
+            CHECK(*inserted == 5);
         }
         {
             static_vector<int, 5> sv{ 1, 2, 3 };
             auto inserted = sv.insert(sv.begin(), 2, 7);
-            REQUIRE(sv.size() == 5);
-            REQUIRE(inserted == &sv[0]);
+            CHECK(sv.size() == 5);
+            CHECK(inserted == &sv[0]);
         }
         {
             static_vector<copy_move_tester, 5> sv{ 1, 2 };
             std::array<copy_move_tester, 3> arr{ 3, 4, 5 };
             auto inserted = sv.insert(sv.begin() + 1, arr.begin(), arr.end());
-            REQUIRE(sv.size() == 5);
-            REQUIRE(inserted == &sv[1]);
+            CHECK(sv.size() == 5);
+            CHECK(inserted == &sv[1]);
         }
     }
     SUBCASE("erase")
@@ -376,20 +376,19 @@ TEST_CASE("modifiers")
         {
             static_vector<copy_move_tester, 3> sv{ 1, 2, 3 };
             sv.erase(sv.begin() + 1);
-            REQUIRE(sv.size() == 2);
-            REQUIRE(sv[0].value() == 1);
-            REQUIRE(sv[1].value() == 3);
+            CHECK(sv.size() == 2);
+            CHECK(sv[0].value() == 1);
+            CHECK(sv[1].value() == 3);
         }
         {
             static_vector<copy_move_tester, 3> sv{ 1, 2, 3 };
             sv.erase(sv.begin(), sv.begin() + 2);
-            REQUIRE(sv.size() == 1);
-            REQUIRE(sv[0].value() == 3);
+            CHECK(sv.size() == 1);
+            CHECK(sv[0].value() == 3);
             sv.erase(sv.begin(), sv.begin());
         }
     }
 }
-
 
 TEST_CASE("ranges")
 {
@@ -400,7 +399,7 @@ TEST_CASE("ranges")
         auto end = sv.end();
         for (auto i : sv)
         {
-            REQUIRE(i == 2);
+            CHECK(i == 2);
         }
     }
 }
