@@ -347,6 +347,17 @@ TEST_CASE("modifiers")
             CHECK(sv2[0].value() == sv1_0);
             CHECK(sv2[1].value() == sv1_1);
         }
+        {
+            static_vector<object_counter, 3> sv1(1);
+            static_vector<object_counter, 3> sv2(3);
+
+            CHECK(object_counter::count == 4);
+            swap(sv1, sv2);
+            CHECK(object_counter::count == 4);
+            swap(sv1, sv2);
+            CHECK(object_counter::count == 4);
+
+        }
     }
     SUBCASE("insert")
     {

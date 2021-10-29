@@ -325,6 +325,7 @@ namespace dpm
                 std::iter_swap(smaller_begin, larger_begin);
             }
             std::uninitialized_move(larger_begin, larger_end, smaller_begin);
+            ranges::destroy(larger_begin, larger_end);
             std::swap(size_, other.size_);
         }
 
