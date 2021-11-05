@@ -324,7 +324,7 @@ namespace dpm
             {
                 std::iter_swap(smaller_begin, larger_begin);
             }
-            std::uninitialized_move(larger_begin, larger_end, smaller_begin);
+            ranges::uninitialized_move(larger_begin, larger_end, smaller_begin, std::unreachable_sentinel);
             ranges::destroy(larger_begin, larger_end);
             std::swap(size_, other.size_);
         }
