@@ -224,13 +224,13 @@ namespace dpm
         {
             assert(size_ < capacity());
             emplace_back(x);
-            return std::rotate(const_cast<iterator>(position), end() - 1, end()) - 1;
+            return ranges::rotate(const_cast<iterator>(position), end() - 1, end()).begin() - 1;
         }
         constexpr iterator insert(const_iterator position, value_type&& x)
         {
             assert(size_ < capacity());
             emplace_back(std::move(x));
-            return std::rotate(const_cast<iterator>(position), end() - 1, end()) - 1;
+            return ranges::rotate(const_cast<iterator>(position), end() - 1, end()).begin() - 1;
         }
         constexpr iterator insert(const_iterator position, size_type n, const value_type& x)
         {
@@ -241,7 +241,7 @@ namespace dpm
                 emplace_back(x);
             }
             auto pos = const_cast<iterator>(position);
-            std::rotate(pos, old_end, end());
+            ranges::rotate(pos, old_end, end());
             return pos;
         }
         template <std::input_iterator InputIterator>
@@ -253,7 +253,7 @@ namespace dpm
             ranges::uninitialized_copy(first, last, old_end, end());
 
             auto pos = const_cast<iterator>(position);
-            std::rotate(pos, old_end, end());
+            ranges::rotate(pos, old_end, end());
             return pos;
         }
         constexpr iterator insert(const_iterator position, std::initializer_list<value_type> il)
@@ -266,7 +266,7 @@ namespace dpm
         {
             assert(size_ < capacity());
             emplace_back(std::forward<Args>(args)...);
-            return std::rotate(iterator(position), end() - 1, end()) - 1;
+            return ranges::rotate(iterator(position), end() - 1, end()).begin() - 1;
         }
 
         template <class... Args>
