@@ -17,6 +17,35 @@ namespace dpm
         namespace ranges = std::ranges;
     }
 
+    template <std::size_t N>
+    consteval auto determine_size_type() noexcept
+    {
+        if constexpr (N <= std::numeric_limits<std::uint8_t>::max())
+        {
+            return std::type_identity<std::uint8_t>{};
+        }
+        else if constexpr (N <= std::numeric_limits<std::uint16_t>::max())
+        {
+            return std::type_identity<std::uint16_t>{};
+        }
+        else if constexpr (N <= std::numeric_limits<std::uint32_t>::max())
+        {
+            return std::type_identity<std::uint32_t>{}; // realistically won't go beyond here.
+        }
+        else if constexpr (N <= std::numeric_limits<std::uint64_t>::max())
+        {
+            return std::type_identity<std::uint64_t>{};
+        }
+        else
+        {
+            return std::type_identity<std::size_t>{};
+        }
+    }
+
+    template <std::size_t capacity>
+    using smallest_size_type = typename decltype(determine_size_type<capacity>())::type;
+
+
     template <class T, std::size_t N>
     struct uninitialized_storage
     {
@@ -32,7 +61,7 @@ namespace dpm
         static_assert(!std::is_const_v<T>, "static_vector can't contain const elements.");
 
         uninitialized_storage<T, Capacity> storage_;
-        std::size_t size_ = 0;
+        smallest_size_type<Capacity> size_ = 0;
 
         constexpr static bool trivial_copy_ctor = std::is_trivially_copy_constructible_v<T>;
         constexpr static bool trivial_move_ctor = std::is_trivially_move_constructible_v<T>;
@@ -46,7 +75,7 @@ namespace dpm
         using const_pointer = const T*;
         using reference = value_type&;
         using const_reference = const value_type&;
-        using size_type = std::size_t;
+        using size_type = smallest_size_type<Capacity>;
         using difference_type = std::ptrdiff_t;
         using iterator = T*;
         using const_iterator = const T*;
@@ -88,11 +117,11 @@ namespace dpm
         {
             static_assert(std::is_constructible_v<value_type, decltype(*first)>,
                 "value_type must be constructible from decltype(*first)");
-            size_ = std::distance(first, last);
+            size_ = static_cast<size_type>(std::distance(first, last));
             assert(size_ <= capacity());
             ranges::uninitialized_copy(first, last, begin(), end());
         }
-        constexpr static_vector(std::initializer_list<value_type> il) : size_(il.size())
+        constexpr static_vector(std::initializer_list<value_type> il) : size_(static_cast<size_type>(il.size()))
         {
             assert(il.size() <= capacity());
             ranges::uninitialized_copy(il, *this);
@@ -130,7 +159,7 @@ namespace dpm
             auto [in, out] = ranges::copy_n(first, min, begin());
             auto [_, new_end] = ranges::uninitialized_copy(in, last, out, end());
             ranges::destroy(new_end, end());
-            size_ = new_size;
+            size_ = static_cast<size_type>(new_size);
         }
         constexpr void assign(size_type n, const value_type& value)
         {
@@ -248,7 +277,7 @@ namespace dpm
         constexpr iterator insert(const_iterator position, InputIterator first, InputIterator last)
         {
             auto old_end = end();
-            size_ += std::distance(first, last);
+            size_ += static_cast<size_type>(std::distance(first, last));
             assert(size_ <= capacity());
             ranges::uninitialized_copy(first, last, old_end, end());
 
@@ -297,7 +326,7 @@ namespace dpm
         {
             auto removed_end = const_cast<iterator>(ranges::destroy(first, last));
             ranges::rotate(const_cast<iterator>(first), removed_end, end());
-            size_ -= std::distance(first, last);
+            size_ -= static_cast<size_type>(std::distance(first, last));
             return removed_end;
         }
 
