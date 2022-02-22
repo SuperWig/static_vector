@@ -22,8 +22,8 @@ namespace dpm
     {
         alignas(T) std::byte storage[sizeof(T) * N];
 
-        T* data() { return reinterpret_cast<T*>(&storage); }
-        const T* data() const { return reinterpret_cast<const T*>(&storage); }
+        T* data() { return reinterpret_cast<T*>(std::addressof(storage)); }
+        const T* data() const { return reinterpret_cast<const T*>(std::addressof(storage)); }
     };
 
     template <class T, std::size_t Capacity>
@@ -282,7 +282,7 @@ namespace dpm
 
         constexpr void pop_back()
         {
-            std::destroy_at(&back());
+            std::destroy_at(std::addressof(back()));
             --size_;
         }
         constexpr iterator erase(const_iterator position)
