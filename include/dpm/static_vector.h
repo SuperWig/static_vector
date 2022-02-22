@@ -322,7 +322,7 @@ namespace dpm
 
             for (; smaller_begin != smaller_end; ++smaller_begin, ++larger_begin)
             {
-                std::iter_swap(smaller_begin, larger_begin);
+                ranges::iter_swap(smaller_begin, larger_begin);
             }
             ranges::uninitialized_move(larger_begin, larger_end, smaller_begin, std::unreachable_sentinel);
             ranges::destroy(larger_begin, larger_end);
@@ -331,10 +331,6 @@ namespace dpm
 
         [[nodiscard]] constexpr bool operator==(const static_vector& other) const noexcept
         {
-            if (size_ != other.size_)
-            {
-                return false;
-            }
             return ranges::equal(*this, other);
         }
         [[nodiscard]] constexpr auto operator<=>(const static_vector& other) const noexcept
